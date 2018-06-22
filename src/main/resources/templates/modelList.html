@@ -122,7 +122,13 @@
 		
 		//删除
 		function del(id){
-			$(location).attr('href', '${path}/activiti/deleteByIds?id='+id);  
+			$.ajax({
+			  type: 'POST',
+			  url: url,
+			  data: data,
+			  success: success,
+			  dataType: dataType
+			});
 		} 
 	
 		
