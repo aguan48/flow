@@ -1,0 +1,133 @@
+<html>
+<head>
+	<#assign path = request.contextPath />
+	<link rel="stylesheet" href="${path}/table/bootstrap/css/bootstrap/bootstrap.css" />
+	<link rel="stylesheet" href="${path}/table/bootstrap-table/bootstrap-table.css" />	
+	
+	<script src="${path}/table/jquery/jquery.min.js"></script>
+	<script src="${path}/table/bootstrap/js/bootstrap.js"></script>	
+	<script src="${path}/table/bootstrap-table/bootstrap-table.js"></script>
+	<script src="${path}/table/bootstrap-table/bootstrap-table-export.js"></script>
+	<script src="${path}/table/extends/tableExport/jquery.base64.js"></script>
+	<script src="${path}/table/extends/tableExport/tableExport.js"></script>
+		
+</head>
+
+<body>
+	<div id="content">
+		<div id="content-body">
+			<div id="reportTableDiv" class="span10">
+				<table id="reportTable">
+				</table>
+			</div>
+		</div>
+	</div>
+
+	<script type="text/javascript">
+		
+		$(function () {
+		    var reportTable = new TableInit();
+		    reportTable.Init();
+		});
+	
+		var TableInit = function () {
+		    var oTableInit = new Object();
+		    oTableInit.Init = function () {
+		        $('#reportTable').bootstrapTable({
+		            url: '${path}/activiti/selectAll',
+		            method: 'post',
+		            toolbar: '#toolbar',
+		            striped: true,
+		            cache: false,
+		            dataType: "json",
+		            pagination: true,
+		            sortable: true,
+		            sortOrder: 'asc',
+		            sidePagination: "server",
+		            clickToSelect: true,
+		            uniqueId: 'teacher_id',
+		            uniqueId: "id", 
+		         	pageSize: 20,
+					pageNumber:1,
+					pageList: [10, 20, 50, 100, 200, 500],
+					search: true,
+					showRefresh: true,
+					height: 800,
+					strictSearch: true,
+		            columns: [ 
+		               		{ 
+			                  field : 'id', 
+			                  title : 'ID', 
+			                  align : 'center' 
+			                }, 
+			                { 
+			                  field : 'revision', 
+			                  title : '版本', 
+			                  align : 'center' 
+			                }, 
+			                { 
+			                  field : 'name', 
+			                  title : '名称', 
+			                  align : 'center' 
+			                }, 
+			                { 
+			                  field : 'key', 
+			                  title : 'key', 
+			                  align : 'center' 
+			                },
+			                
+			                /* {  
+			                    field: 'createTime',  
+			                    title: '创建日期',  
+			      
+			                    sortable: true,  
+			                    //——修改——获取日期列的值进行转换  
+			                    formatter: function (value, row, index) {  
+			                        return changeDateFormat(value)  
+			                    }
+			                }, */
+			                
+			                { 
+			                  title : '操作', 
+			                  field : 'id', 
+			                  align : 'center', 
+			                  formatter : function(value, row, index) { 
+			                    var e = '<a href="#" mce_href="" onclick="edit(\'' 
+			                        + row.id + '\')">编辑</a> '; 
+			                    var d = '<a href="#" mce_href="#" onclick="del(\'' 
+			                        + row.id + '\')">删除</a> '; 
+			                    return e + d; 
+			                  } 
+			  
+			             }] 
+		        });
+		    };
+		    return oTableInit; 
+		}; 
+		
+		//修改——转换日期格式(时间戳转换为datetime格式)  
+        function changeDateFormat(cellval) {  
+            if (cellval != null) {  
+                var date = new Date(parseInt(cellval.replace("/Date(", "").replace(")/", ""), 10));  
+                var month = date.getMonth() + 1 < 10 ? "0" + (date.getMonth() + 1) : date.getMonth() + 1;  
+                var currentDate = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();  
+                return date.getFullYear() + "-" + month + "-" + currentDate;  
+            }  
+        }  
+		
+		//编辑
+		function edit(id){
+			$(location).attr('href', '${path}/activiti/editFlow?id='+id);  
+		}
+		
+		//删除
+		function del(id){
+			$(location).attr('href', '${path}/activiti/deleteByIds?id='+id);  
+		} 
+	
+		
+	</script>
+
+</body>
+
+</html>
