@@ -46,11 +46,46 @@ public class ActivitiController extends BaseController{
 
 	@Autowired
 	private RepositoryService repositoryService;
-
-	@RequestMapping(value="/toModelListPage")
+	
+	//跳转登陆页
+	@RequestMapping(value="/toLoginPage")
 	private ModelAndView toModelListPage(HttpServletRequest request) {
+		return new ModelAndView("login");
+	}
+	
+	//处理登陆
+	@RequestMapping(value="/login")
+	private ModelAndView login(HttpServletRequest request) {
+		
+		//处理登陆
+		
+		return new ModelAndView("home");
+	}
+	
+	//模型列表
+	@RequestMapping(value="/modelList")
+	private ModelAndView modelList(HttpServletRequest request) {
 		return new ModelAndView("modelList");
 	}
+	
+	//编辑模型
+	@RequestMapping(value = "/editFlow")  
+	public void editFlow(HttpServletRequest request, HttpServletResponse response, 
+			@RequestParam("id") String id) {
+		try {
+			if(StringUtils.isNotEmpty(id)) {
+				//通过id查找
+				Model modelData = repositoryService.getModel(id);
+				if(modelData != null) {
+					response.sendRedirect(request.getContextPath() + "/modeler.html?modelId=" + modelData.getId());
+				}
+			}
+		} catch (Exception e) {
+			
+		}
+		
+	}
+	
 
 	/**
 	 * 查询
@@ -105,23 +140,6 @@ public class ActivitiController extends BaseController{
 			// TODO: handle exception
 		}
 		return result;
-	}
-	
-	@RequestMapping(value = "/editFlow")  
-	public void editFlow(HttpServletRequest request, HttpServletResponse response, 
-			@RequestParam("id") String id) {
-		try {
-			if(StringUtils.isNotEmpty(id)) {
-				//通过id查找
-				Model modelData = repositoryService.getModel(id);
-				if(modelData != null) {
-					response.sendRedirect(request.getContextPath() + "/modeler.html?modelId=" + modelData.getId());
-				}
-			}
-		} catch (Exception e) {
-			
-		}
-		
 	}
 
 	/** 
