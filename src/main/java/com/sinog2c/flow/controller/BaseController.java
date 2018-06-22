@@ -16,73 +16,63 @@ public class BaseController {
 	 */
 	public List<Model> getModelList(ModelQuery query, Map<String, Object> param){
 		List<Model> list = null;
-		String sidx = param.get("sidx").toString();
-		String sord = param.get("sord").toString();
-		if("id".equals(sidx.toLowerCase())) {
-			if("asc".equals(sord)) {
-				list = query.orderByModelId().asc().listPage(Integer.parseInt(param.get("page").toString())-1, 
-							Integer.parseInt(param.get("pageSize").toString()));
+		String sort = param.get("sort").toString();
+		String order = param.get("order").toString();
+		String search = param.get("search").toString();
+		if(!"".equals(search)) {
+			query = query.modelNameLike(search);
+		}
+		if("id".equals(sort.toLowerCase())) {
+			if("asc".equals(order)) {
+				query = query.orderByModelId().asc();
 			}else {
-				list = query.orderByModelId().desc().listPage(Integer.parseInt(param.get("page").toString())-1, 
-							Integer.parseInt(param.get("pageSize").toString()));
+				query = query.orderByModelId().desc();
 			}
-		}else if("key".equals(sidx.toLowerCase())) {
-			if("asc".equals(sord)) {
-				list = query.orderByModelKey().asc().listPage(Integer.parseInt(param.get("page").toString())-1, 
-							Integer.parseInt(param.get("pageSize").toString()));
+		}else if("key".equals(sort.toLowerCase())) {
+			if("asc".equals(order)) {
+				query = query.orderByModelKey().asc();
 			}else {
-				list = query.orderByModelKey().desc().listPage(Integer.parseInt(param.get("page").toString())-1, 
-							Integer.parseInt(param.get("pageSize").toString()));
+				query = query.orderByModelKey().desc();
 			}
-		}else if("name".equals(sidx.toLowerCase())) {
-			if("asc".equals(sord)) {
-				list = query.orderByModelName().asc().listPage(Integer.parseInt(param.get("page").toString())-1, 
-							Integer.parseInt(param.get("pageSize").toString()));
+		}else if("name".equals(sort.toLowerCase())) {
+			if("asc".equals(order)) {
+				query = query.orderByModelName().asc();
 			}else {
-				list = query.orderByModelName().desc().listPage(Integer.parseInt(param.get("page").toString())-1, 
-							Integer.parseInt(param.get("pageSize").toString()));
+				query = query.orderByModelName().desc();
 			}
-		}else if("revision".equals(sidx.toLowerCase())) {
-			if("asc".equals(sord)) {
-				list = query.orderByModelVersion().asc().listPage(Integer.parseInt(param.get("page").toString())-1, 
-							Integer.parseInt(param.get("pageSize").toString()));
+		}else if("revision".equals(sort.toLowerCase())) {
+			if("asc".equals(order)) {
+				query = query.orderByModelVersion().asc();
 			}else {
-				list = query.orderByModelVersion().desc().listPage(Integer.parseInt(param.get("page").toString())-1, 
-							Integer.parseInt(param.get("pageSize").toString()));
+				query = query.orderByModelVersion().desc();
 			}
-		}else if("category".equals(sidx.toLowerCase())) {
-			if("asc".equals(sord)) {
-				list = query.orderByModelCategory().asc().listPage(Integer.parseInt(param.get("page").toString())-1, 
-							Integer.parseInt(param.get("pageSize").toString()));
+		}else if("category".equals(sort.toLowerCase())) {
+			if("asc".equals(order)) {
+				query = query.orderByModelCategory().asc();
 			}else {
-				list = query.orderByModelCategory().desc().listPage(Integer.parseInt(param.get("page").toString())-1, 
-							Integer.parseInt(param.get("pageSize").toString()));
+				query = query.orderByModelCategory().desc();
 			}
-		}else if("lastupdatetime".equals(sidx.toLowerCase())) {
-			if("asc".equals(sord)) {
-				list = query.orderByLastUpdateTime().asc().listPage(Integer.parseInt(param.get("page").toString())-1, 
-							Integer.parseInt(param.get("pageSize").toString()));
+		}else if("lastupdatetime".equals(sort.toLowerCase())) {
+			if("asc".equals(order)) {
+				query = query.orderByLastUpdateTime().asc();
 			}else {
-				list = query.orderByLastUpdateTime().desc().listPage(Integer.parseInt(param.get("page").toString())-1, 
-							Integer.parseInt(param.get("pageSize").toString()));
+				query = query.orderByLastUpdateTime().desc();
 			}
-		}else if("tenantid".equals(sidx.toLowerCase())) {
-			if("asc".equals(sord)) {
-				list = query.orderByTenantId().asc().listPage(Integer.parseInt(param.get("page").toString())-1, 
-							Integer.parseInt(param.get("pageSize").toString()));
+		}else if("tenantid".equals(sort.toLowerCase())) {
+			if("asc".equals(order)) {
+				query = query.orderByTenantId().asc();
 			}else {
-				list = query.orderByTenantId().desc().listPage(Integer.parseInt(param.get("page").toString())-1, 
-							Integer.parseInt(param.get("pageSize").toString()));
+				query = query.orderByTenantId().desc();
 			}
 		}else{
-			if("asc".equals(sord)) {
-				list = query.orderByCreateTime().asc().listPage(Integer.parseInt(param.get("page").toString())-1, 
-							Integer.parseInt(param.get("pageSize").toString()));
+			if("asc".equals(order)) {
+				query = query.orderByCreateTime().asc();
 			}else {
-				list = query.orderByCreateTime().desc().listPage(Integer.parseInt(param.get("page").toString())-1, 
-							Integer.parseInt(param.get("pageSize").toString()));
+				query = query.orderByCreateTime().desc();
 			}
 		}
+		list = query.listPage(Integer.parseInt(param.get("offset").toString()), 
+				Integer.parseInt(param.get("limit").toString()));
 		return list;
 	}
 	

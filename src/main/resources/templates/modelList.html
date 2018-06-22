@@ -1,16 +1,24 @@
 <html>
 <head>
 	<#assign path = request.contextPath />
-	<link rel="stylesheet" href="${path}/table/bootstrap/css/bootstrap/bootstrap.css" />
-	<link rel="stylesheet" href="${path}/table/bootstrap-table/bootstrap-table.css" />	
-	
+	<link rel="stylesheet" href="${path}/table/bootstrap/css/bootstrap/bootstrap.min.css" />
+	<link rel="stylesheet" href="${path}/table/bootstrap-table/bootstrap-table.min.css" />
 	<script src="${path}/table/jquery/jquery.min.js"></script>
-	<script src="${path}/table/bootstrap/js/bootstrap.js"></script>	
-	<script src="${path}/table/bootstrap-table/bootstrap-table.js"></script>
+	<script src="${path}/table/bootstrap/js/bootstrap.min.js"></script>
+	<script src="${path}/js/common.js"></script>
+	<script src="${path}/table/bootstrap-table/bootstrap-table.min.js"></script>
 	<script src="${path}/table/bootstrap-table/bootstrap-table-export.js"></script>
 	<script src="${path}/table/extends/tableExport/jquery.base64.js"></script>
 	<script src="${path}/table/extends/tableExport/tableExport.js"></script>
-		
+	<script src="${path}/table/bootstrap-table/locale/bootstrap-table-zh-CN.js"></script>
+	<style type="text/css">
+		html,body{
+			margin: 0;
+			padding: 0;
+			width: 100%;
+			height: 100%;
+		}
+	</style>
 </head>
 
 <body>
@@ -18,6 +26,14 @@
 		<div id="content-body">
 			<div id="reportTableDiv" class="span10">
 				<table id="reportTable">
+					<div id="toolbar" class="btn-group" style="margin-left: 10px;">
+						<button id="btn_add" type="button" class="btn btn-default" onclick="add();">
+						    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>新增
+						</button>
+						 <button id="btn_delete" type="button" class="btn btn-default" onclick="batchDelete();">
+			                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>批量删除
+			            </button>
+					</div>
 				</table>
 			</div>
 		</div>
@@ -34,27 +50,53 @@
 		    var oTableInit = new Object();
 		    oTableInit.Init = function () {
 		        $('#reportTable').bootstrapTable({
-		            url: '${path}/activiti/selectAll',
-		            method: 'post',
-		            toolbar: '#toolbar',
-		            striped: true,
-		            cache: false,
+		            url: '${path}/activiti/selectAll',// 请求后台的URL（*）
+		            method: 'post',// 请求方式（*）post/get
+		            toolbar: '#toolbar',// 工具按钮用哪个容器
+		            striped: true,// 是否显示行间隔色
+		            cache: false,// 是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
 		            dataType: "json",
-		            pagination: true,
-		            sortable: true,
-		            sortOrder: 'asc',
-		            sidePagination: "server",
-		            clickToSelect: true,
-		            uniqueId: 'teacher_id',
-		            uniqueId: "id", 
-		         	pageSize: 20,
-					pageNumber:1,
-					pageList: [10, 20, 50, 100, 200, 500],
-					search: true,
-					showRefresh: true,
-					height: 800,
+		            pagination: true,// 是否显示分页（*）
+		            sortable: true,// 是否启用排序
+		            sortName: "createTime",
+		            sortOrder: 'desc',// 排序方式
+		            sidePagination: "server",// 分页方式：client客户端分页，server服务端分页（*）
+		            clickToSelect: true,// 是否启用点击选中行
+		            uniqueId: "id", // 每一行的唯一标识，一般为主键列
+		         	pageSize: 10,// 每页的记录行数（*）
+					pageNumber: 1,// 初始化加载第一页，默认第一页
+					smartDisplay: false,
+					pageList: [10, 20, 50, 100, "All"],// 可供选择的每页的行数（*）
+					search: true, // 是否显示表格搜索，此搜索是客户端搜索，不会进服务端
+					showRefresh: true,// 是否显示刷新按钮
+					height: $("body").height() - 38,// 行高，如果没有设置height属性，表格自动根据记录条数觉得表格高度
 					strictSearch: true,
+					paginationPreText: '上一页',
+		            paginationNextText: '下一页',
+		            showPaginationSwitch: true,//是否显示数据条数选择框
+					contentType: "application/x-www-form-urlencoded",
+					queryParams: function (params) {//自定义参数，这里的参数是传给后台的，我这是是分页用的  
+	                    return {//这里的params是table提供的  
+	                    	offset: params.offset,//从数据库第几条记录开始  
+	                        limit: params.limit,//找多少条  
+	                        sort: params.sort,
+                            order: params.order,
+                            search: params.search
+	                    };  
+	                },  
 		            columns: [ 
+			            	{  
+		                        checkbox : true  
+		                    },
+			            	{  
+		                        field : 'number',//可不加  
+		                        title : '序号',//标题  可不加  
+		                        align : 'center',
+		                        width : 30,
+		                        formatter: function (value, row, index) {  
+		                            return index+1;  
+		                        }  
+		                    },
 		               		{ 
 			                  field : 'id', 
 			                  title : 'ID', 
@@ -68,6 +110,7 @@
 			                { 
 			                  field : 'name', 
 			                  title : '名称', 
+			                  width : 300,
 			                  align : 'center' 
 			                }, 
 			                { 
@@ -75,17 +118,15 @@
 			                  title : 'key', 
 			                  align : 'center' 
 			                },
-			                
-			                /* {  
-			                    field: 'createTime',  
-			                    title: '创建日期',  
-			      
-			                    sortable: true,  
-			                    //——修改——获取日期列的值进行转换  
-			                    formatter: function (value, row, index) {  
-			                        return changeDateFormat(value)  
-			                    }
-			                }, */
+			                {  
+				              title : "创建时间",  
+			                  field : "createTime",  
+			                  align : 'center',
+			                  width : 200,
+			                  formatter : function(value, row, index){
+			                  	  return changeDateFormat(value)
+			                  }
+			                },
 			                
 			                { 
 			                  title : '操作', 
@@ -105,35 +146,69 @@
 		    return oTableInit; 
 		}; 
 		
-		//修改——转换日期格式(时间戳转换为datetime格式)  
-        function changeDateFormat(cellval) {  
-            if (cellval != null) {  
-                var date = new Date(parseInt(cellval.replace("/Date(", "").replace(")/", ""), 10));  
-                var month = date.getMonth() + 1 < 10 ? "0" + (date.getMonth() + 1) : date.getMonth() + 1;  
-                var currentDate = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();  
-                return date.getFullYear() + "-" + month + "-" + currentDate;  
-            }  
-        }  
+		//转换日期格式(时间戳转换为datetime格式)
+		function changeDateFormat(cellval) {
+		    var dateVal = cellval + "";
+		    if (cellval != null) {
+		        var date = new Date(parseInt(dateVal.replace("/Date(", "").replace(")/", ""), 10));
+		        var month = date.getMonth() + 1 < 10 ? "0" + (date.getMonth() + 1) : date.getMonth() + 1;
+		        var currentDate = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+		        
+		        var hours = date.getHours() < 10 ? "0" + date.getHours() : date.getHours();
+		        var minutes = date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes();
+		        var seconds = date.getSeconds() < 10 ? "0" + date.getSeconds() : date.getSeconds();
+		        
+		        return date.getFullYear() + "-" + month + "-" + currentDate + " " + hours + ":" + minutes + ":" + seconds;
+		    }
+		}
+
 		
 		//编辑
 		function edit(id){
 			$(location).attr('href', '${path}/activiti/editFlow?id='+id);  
 		}
 		
+		//批量删除
+		function batchDelete(){
+			var getSelectRows = $("#reportTable").bootstrapTable('getSelections');
+			var ids = "";
+			if(getSelectRows && getSelectRows.length > 0){
+				var idArr = new Array();
+				for(var i=0; i<getSelectRows.length; i++){
+					idArr.push(getSelectRows[i].id);
+				}
+				ids = idArr.join(',');
+			}
+			del(ids);
+		}
+		
 		//删除
 		function del(id){
-			$.ajax({
-			  type: 'POST',
-			  url: url,
-			  data: data,
-			  success: success,
-			  dataType: dataType
-			});
+			if(id){
+				confirm("确定要删除选中记录吗？", function(rusult){
+					if(rusult){
+						$.ajax({
+							url: "${path}/activiti/deleteByIds",
+							data: {ids: id},
+							type: "post",
+							dataType: "json",
+							success: function (data) {
+								alert(data.message);
+								if(data.success){
+									$('#reportTable').bootstrapTable('refresh');
+								}
+							},
+							error: function (jqXHR, textStatus, errorThrown) {
+								alert("操作失败!");
+							}
+						});
+					}
+				})
+			}else{
+				alert("至少选择一条记录!");
+			}
 		} 
-	
-		
 	</script>
-
 </body>
 
 </html>

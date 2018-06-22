@@ -56,9 +56,7 @@ public class ActivitiController extends BaseController{
 	//处理登陆
 	@RequestMapping(value="/login")
 	private ModelAndView login(HttpServletRequest request) {
-		
 		//处理登陆
-		
 		return new ModelAndView("home");
 	}
 	
@@ -96,22 +94,22 @@ public class ActivitiController extends BaseController{
 	public DataJsonResult selectAll(HttpServletRequest request){
 		DataJsonResult json = new DataJsonResult(false, "获取模型列表失败!");
 		try {
-			Integer page = request.getParameter("page") == null ? 1 : Integer.parseInt(request.getParameter("page"));
-			Integer pageSize = request.getParameter("rows") == null ? 20 : Integer.parseInt(request.getParameter("rows"));
-			String sidx = request.getParameter("sidx") == null ? "" : request.getParameter("sidx"); //排序字段
-			String sord = request.getParameter("sord") == null ? "" : request.getParameter("sord"); //排序方式
+			Integer limit = request.getParameter("limit") == null ? 20 : Integer.parseInt(request.getParameter("limit"));
+			Integer offset = request.getParameter("offset") == null ? 0 : Integer.parseInt(request.getParameter("offset"));
+			String sort = request.getParameter("sort") == null ? "" : request.getParameter("sort"); //排序字段
+			String order = request.getParameter("order") == null ? "" : request.getParameter("order"); //排序方式
+			String search = request.getParameter("search") == null ? "" : request.getParameter("search"); //排序方式
 			Map<String, Object> param = new HashMap<String, Object>();
-			param.put("page", page);
-			param.put("pageSize", pageSize);
-			param.put("sidx", sidx);
-			param.put("sord", sord);
+			param.put("offset", offset);
+			param.put("limit", limit);
+			param.put("sort", sort);
+			param.put("order", order);
+			param.put("search", search);
 			ModelQuery query = repositoryService.createModelQuery();
 			List<Model> resultList = getModelList(query, param);
-			Long records = query.count();
-			json.setRows(resultList);
-			json.setRecords(records);
-			json.setPage(page);
-			json.setTotal(Integer.parseInt(records/pageSize + records%pageSize + ""));
+			Long total = query.count();
+			json.setRows(resultList);//数据
+			json.setTotal(total);//总记录数
 			json.setSuccess(true);
 			json.setMessage("获取模型列表成功!");
 		} catch (Exception e) {
@@ -128,11 +126,14 @@ public class ActivitiController extends BaseController{
 	 */
 	@RequestMapping(value = "/deleteByIds")
 	@ResponseBody
-	public Result deleteByIds(String[] ids,HttpServletRequest request) {
+	public Result deleteByIds(String ids,HttpServletRequest request) {
 		Result result = new Result(false, "删除失败!");
 		try {
-			for(String id : ids){
-				repositoryService.deleteModel(id);
+			if(StringUtils.isNotEmpty(ids)) {
+				String[] idStr = ids.split(",");
+				for(String id : idStr){
+					repositoryService.deleteModel(id);
+				}
 			}
 			result.setSuccess(true);
 			result.setMessage("删除成功!");

@@ -1,7 +1,6 @@
 package com.sinog2c.flow.util;
 
 import java.io.Serializable;
-import java.util.List;
 
 public class DataJsonResult extends Result implements Serializable {
 	
@@ -9,11 +8,7 @@ public class DataJsonResult extends Result implements Serializable {
 
 	private Object rows;//包含实际数据的数组
 	
-	private Integer page;//当前页
-	
-	private Integer total;//总页数
-	
-	private Long records; //总记录数
+	private Long total; //总记录数
 	
 	public DataJsonResult() {}
 	
@@ -30,27 +25,11 @@ public class DataJsonResult extends Result implements Serializable {
 		this.rows = rows;
 	}
 
-	public Integer getPage() {
-		return page;
-	}
-
-	public void setPage(Integer page) {
-		this.page = page;
-	}
-
-	public Integer getTotal() {
+	public Long getTotal() {
 		return total;
 	}
 
-	public void setTotal(Integer total) {
+	public void setTotal(Long total) {
 		this.total = total;
-	}
-
-	public Long getRecords() {
-		return records;
-	}
-
-	public void setRecords(Long records) {
-		this.records = records;
 	}
 }
