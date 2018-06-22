@@ -106,6 +106,23 @@ public class ActivitiController extends BaseController{
 		}
 		return result;
 	}
+	
+	@RequestMapping(value = "/editFlow")  
+	public void editFlow(HttpServletRequest request, HttpServletResponse response, 
+			@RequestParam("id") String id) {
+		try {
+			if(StringUtils.isNotEmpty(id)) {
+				//通过id查找
+				Model modelData = repositoryService.getModel(id);
+				if(modelData != null) {
+					response.sendRedirect(request.getContextPath() + "/modeler.html?modelId=" + modelData.getId());
+				}
+			}
+		} catch (Exception e) {
+			
+		}
+		
+	}
 
 	/** 
 	 * 新增模型
