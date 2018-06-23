@@ -56,15 +56,10 @@ spring:
     check-process-definitions: false
     db-identity-used: false
 # mybatis 路径映射
-#mybatis:
-#  mapper-locations:
-#  - classpath:mapper/**/*.xml
-#  type-aliases-package: com.sinog2c.flow.domain
-#  config-location: classpath:mybatis-config.xml
-## mybatis3 通用组件
-#mapper:
-#  mappers: com.sinog2c.flow.mapper.MyMapper<T>
-#  not-empty: true
-#  identity: MYSQL
-#  order: after
-  
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: com.sinog2c.flow.domain
+  config-location: classpath:mybatis-config.xml
+
+#不拦截的url
+excludeList: /user/login,/user/logout

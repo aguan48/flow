@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinog2c.flow.mapper.UserMapper">
+	<resultMap id="BaseResultMap" type="com.sinog2c.flow.domain.User">
+		<id column="id" jdbcType="VARCHAR" property="id" />
+		<result column="username" jdbcType="VARCHAR" property="userName" />
+		<result column="password" jdbcType="VARCHAR" property="password" />
+		<result column="name" jdbcType="VARCHAR" property="name" />
+		<result column="gender" jdbcType="VARCHAR" property="gender" />
+		<result column="createtime" jdbcType="DATE" property="createTime" />
+		<result column="createid" jdbcType="VARCHAR" property="createId" />
+		<result column="optime" jdbcType="DATE" property="opTime" />
+		<result column="opid" jdbcType="VARCHAR" property="opId" />
+		<result column="state" jdbcType="VARCHAR" property="state" />
+	</resultMap>
+	
+	<sql id="Base_Column_List">
+		id, username, password, name, gender, createtime, createid, optime, opid, state	
+	</sql>
+	
+	<select id="selectUserById" parameterType="Map" resultMap="BaseResultMap">
+		SELECT  
+			<include refid="Base_Column_List" />
+		FROM TBFLOW_USERINFO
+		WHERE 1=1
+		<if test="id != null and id != ''">
+			AND id = #{id, jdbcType=VARCHAR}
+		</if>
+		<if test="username != null and username != ''">
+			AND username = #{username, jdbcType=VARCHAR}
+		</if>
+		<if test="password != null and password != ''">
+			AND password = #{password, jdbcType=VARCHAR}
+		</if>
+		<if test="name != null and name != ''">
+			AND name = #{name, jdbcType=VARCHAR}
+		</if>
+		<if test="state != null and state != ''">
+			AND state = #{state, jdbcType=VARCHAR}
+		</if>
+	</select>
+	
+</mapper>

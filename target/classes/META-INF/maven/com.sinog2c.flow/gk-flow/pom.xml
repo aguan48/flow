@@ -65,20 +65,21 @@
 			<version>${druid.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.mybatis.spring.boot</groupId>
-			<artifactId>mybatis-spring-boot-starter</artifactId>
-			<version>1.1.1</version>
-		</dependency>
+			<groupId>tk.mybatis</groupId>  
+            <artifactId>mapper-spring-boot-starter</artifactId>  
+            <version>2.0.3</version>  
+            <exclusions>  
+                <exclusion>  
+                    <artifactId>persistence-api</artifactId>  
+                    <groupId>javax.persistence</groupId>  
+                </exclusion>  
+            </exclusions> 
+        </dependency>
 		<!-- 通用mapper -->
-		<!-- <dependency>
-			<groupId>tk.mybatis</groupId>
-			<artifactId>mapper-spring-boot-starter</artifactId>
-			<version>RELEASE</version>
-		</dependency> -->
-		<dependency>
-			<groupId>com.github.pagehelper</groupId>
-			<artifactId>pagehelper</artifactId>
-			<version>5.1.2</version>
+		<dependency> 
+			<groupId>com.github.pagehelper</groupId> 
+			<artifactId>pagehelper</artifactId> 
+			<version>5.1.2</version> 
 		</dependency>
 		<dependency>
 			<groupId>com.alibaba</groupId>
@@ -92,26 +93,32 @@
 			<artifactId>commons-lang3</artifactId>
 			<version>3.7</version>
 		</dependency>
-		
+
 		<!-- activiti -->
 		<dependency>
 			<groupId>org.activiti</groupId>
 			<artifactId>activiti-spring-boot-starter-basic</artifactId>
 			<version>${activiti.version}</version>
 		</dependency>
-		
+
+		<dependency>
+			<groupId>org.activiti</groupId>
+			<artifactId>activiti-spring-boot-starter-jpa</artifactId>
+			<version>${activiti.version}</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.activiti</groupId>
 			<artifactId>activiti-modeler</artifactId>
 			<version>${activiti.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 			<version>2.5</version>
 		</dependency>
-		
+
 	</dependencies>
 
 	<dependencyManagement>

@@ -25,7 +25,7 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter  {
 		// 多个拦截器组成一个拦截器链
 		// addPathPatterns 用于添加拦截规则
 		//本系统拦截器
-		//registry.addInterceptor(loginInterceptor()).addPathPatterns("/**");
+		registry.addInterceptor(loginInterceptor()).addPathPatterns("/**");
 		super.addInterceptors(registry);
 	}
 

@@ -24,7 +24,7 @@
             <li  class="dropdown" id="profile-messages" >
                 <a title="" href="#" data-toggle="dropdown" data-target="#profile-messages" class="dropdown-toggle">
                     <i class="icon icon-user"></i>&nbsp;
-                    <span class="text">欢迎你，admin</span>&nbsp;
+                    <span class="text">欢迎你，${(user.name)?default('')}</span>&nbsp;
                     <b class="caret"></b>
                 </a>
                 <ul class="dropdown-menu">
@@ -51,13 +51,13 @@
                 <a href="#">
                     <i class="icon icon-sitemap"></i> 
                     <span>模型管理</span> 
-                    <span class="label label-important">1</span>
+                    <!-- <span class="label label-important">1</span> -->
                 </a>
                 <ul>
-                    <li><a class="menu_a" link="modelList"><i class="icon icon-caret-right"></i>模型管理</a></li>
+                    <li><a class="menu_a" link="${path}/activiti/modelList"><i class="icon icon-caret-right"></i>模型管理</a></li>
                 </ul>
             </li>
-            <li class="submenu">
+           <!--  <li class="submenu">
 				<a href="#">
                     <i class="icon icon-random"></i> 
                     <span>流程管理</span> 
@@ -76,7 +76,7 @@
                 <ul>
                     <li><a class="menu_a" link="table.html"><i class="icon icon-caret-right"></i>用户管理</a></li>
                 </ul>
-            </li>
+            </li> -->
         </ul>
     </div>
     <!--sidebar-menu-->

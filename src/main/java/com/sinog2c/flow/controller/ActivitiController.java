@@ -47,19 +47,6 @@ public class ActivitiController extends BaseController{
 	@Autowired
 	private RepositoryService repositoryService;
 	
-	//跳转登陆页
-	@RequestMapping(value="/toLoginPage")
-	private ModelAndView toModelListPage(HttpServletRequest request) {
-		return new ModelAndView("login");
-	}
-	
-	//处理登陆
-	@RequestMapping(value="/login")
-	private ModelAndView login(HttpServletRequest request) {
-		//处理登陆
-		return new ModelAndView("home");
-	}
-	
 	//模型列表
 	@RequestMapping(value="/modelList")
 	private ModelAndView modelList(HttpServletRequest request) {

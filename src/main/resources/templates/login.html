@@ -5,7 +5,7 @@
 	<meta charset="UTF-8" />
 	<meta http-equiv="X-UA-Compatible" content="IE=edge"> 
 	<meta name="viewport" content="width=device-width, initial-scale=1"> 
-	<title>登陆</title>
+	<title>流程管理平台</title>
 	<link rel="stylesheet" type="text/css" href="${path}/login/css/normalize.css" />
 	<link rel="stylesheet" type="text/css" href="${path}/login/css/demo.css" />
 	<!--必要样式-->
@@ -25,16 +25,21 @@
 					<canvas id="demo-canvas"></canvas>
 					<div class="logo_box">
 						<h3>流程管理平台</h3>
-						<form action="#" name="f" method="post">
+						<form id="login" action="${path}/user/login" name="f" method="post" onsubmit="return submitValidate()">
+							<div style="height: 30px; text-align: center; color: red; line-height: 30px; font-size: 1.1em;">
+								<span>${(message)?default('')}</span>
+							</div>
 							<div class="input_outer">
 								<span class="u_user"></span>
-								<input name="logname" class="text" style="color: #FFFFFF !important" type="text" placeholder="请输入账户">
+								<input id="username" name="username" value="${(username)?default('')}" class="text" style="color: #FFFFFF !important" type="text" placeholder="请输入账户"></br>
+								<span id="username_error" style="color: red;"></span>
 							</div>
 							<div class="input_outer">
 								<span class="us_uer"></span>
-								<input name="logpass" class="text" style="color: #FFFFFF !important; position:absolute; z-index:100;"value="" type="password" placeholder="请输入密码">
+								<input id="password" name="password" value="${(password)?default('')}" class="text" style="color: #FFFFFF !important;" type="password" placeholder="请输入密码"></br>
+								<span id="password_error" style="color: red;"></span>
 							</div>
-							<div class="mb2"><a class="act-but submit" href="javascript:window.location = 'login';" style="color: #FFFFFF">登录</a></div>
+							<div class="mb2"><a class="act-but submit" href="javascript:void(0);" onclick="$('#login').submit()" style="color: #FFFFFF">登录</a></div>
 						</form>
 					</div>
 					<div class="buttom-text">
@@ -54,6 +59,7 @@
 				</div>
 			</div>
 		</div><!-- /container -->
+		<script src="${path}/js/jquery.min.js"></script>
 		<script src="${path}/login/js/TweenLite.min.js"></script>
 		<script src="${path}/login/js/EasePack.min.js"></script>
 		<script src="${path}/login/js/rAF.js"></script>
