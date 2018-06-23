@@ -13,7 +13,6 @@ import com.sinog2c.flow.config.JsonpCallbackFilter;
 @SpringBootApplication
 @EnableEurekaClient
 @EnableTransactionManagement
-//@MapperScan("com.sinog2c.flow.mapper")
 @EnableAutoConfiguration(exclude = {
         org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration.class,
         org.activiti.spring.boot.SecurityAutoConfiguration.class
