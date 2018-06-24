@@ -35,7 +35,12 @@ public class LoginInterceptor implements HandlerInterceptor {
 		this.excludeList = excludeList;
 	}
 	
-	private boolean validURI(HttpServletRequest request, HttpServletResponse response){
+	private boolean validURI(HttpServletRequest request){
+		logger.debug("验证用户是否登录");
+		User user = BaseController.getLoginUser(request);
+		if(user != null) {
+			return true;
+		}
 		// 排除列表中
 		logger.debug("排除列表中不拦截的url");
 		String uri = request.getRequestURI();
@@ -47,12 +52,6 @@ public class LoginInterceptor implements HandlerInterceptor {
 				return true;
 			}
 		}
-		
-		logger.debug("验证用户是否登录");
-		User user = BaseController.getLoginUser(request);
-		if(user != null) {
-			return true;
-		}
 		// 未登录,不允许
 		return false;
 	}
@@ -60,18 +59,20 @@ public class LoginInterceptor implements HandlerInterceptor {
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {
-		if(validURI(request, response) == false) {
+		boolean flag = validURI(request);
+		if(!flag) {
+			String url = request.getScheme() + "://"+ request.getServerName() + 
+					":" + request.getLocalPort() + request.getContextPath();
 			//请求不合法，跳到登录页
-			redirect(request, response, "user/login");
+			redirect(request, response, url + "/user/login");
 		}
-		return true;
+		return flag;
 	}
 
 	@Override
 	public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
 			ModelAndView modelAndView) throws Exception {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
@@ -91,7 +92,8 @@ public class LoginInterceptor implements HandlerInterceptor {
 			response.setHeader("CONTENTPATH", url);  
 			response.setStatus(HttpServletResponse.SC_FORBIDDEN);  
 		}else{  
-			response.sendRedirect(url);  
+			System.out.println("1111");
+			response.sendRedirect(url);
 		}  
 	}
 }

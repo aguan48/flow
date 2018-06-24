@@ -107,25 +107,17 @@
 	background: #0096e6;
 }
 .left-logo{
-	width: 400px;
-	height: 500px;
-	padding: 35px;
-	color: #EEE;
-	position: absolute;
-	left: 10%;
-	top:26%;
-	margin-left: -200px;
-	margin-top: -250px;
+	width: 100%;
+	margin: 25px;
 }
 .buttom-text{
-	width: 600px;
-	height: 500px;
-	padding: 35px;
+	width: 100%;
+	padding: 25px;
 	color: #EEE;
 	position: absolute;
-	left: 50%;
-	bottom:2%;
-	text-align:center;
-	margin-left: -200px;
-	margin-bottom: -400px; 
+	bottom:1%;
+	text-align: center;
+}
+.buttom-text table{
+	width: 100%;
 }

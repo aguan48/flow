@@ -29,13 +29,13 @@
                 </a>
                 <ul class="dropdown-menu">
                     <li><a href="#"><i class="icon-user"></i> 个人资料</a></li>
+                    <!-- <li class="divider"></li>
+                    <li><a href="#"><i class="icon-check"></i> 我的任务</a></li> -->
                     <li class="divider"></li>
-                    <li><a href="#"><i class="icon-check"></i> 我的任务</a></li>
-                    <li class="divider"></li>
-                    <li><a href="login.html"><i class="icon-key"></i> 退出系统</a></li>
+                    <li><a href="javascript:void(0);" onclick="logout();"><i class="icon-key"></i> 退出系统</a></li>
                 </ul>
             </li>
-            <li class=""><a title="" href="login.html"><i class="icon icon-share-alt"></i> <span class="text">&nbsp;退出系统</span></a></li>
+            <li class=""><a href="javascript:void(0);" onclick="logout();"><i class="icon icon-share-alt"></i> <span class="text">&nbsp;退出系统</span></a></li>
         </ul>
     </div>
     <!--close-top-Header-menu-->
@@ -93,7 +93,8 @@
     <!--end-main-container-part-->
 
     <script src="${path}/home/js/excanvas.min.js"></script> 
-    <script src="http://www.jq22.com/jquery/jquery-1.7.1.js"></script>
+    <script src="${path}/home/js/jquery.min.js"></script>
+    <script src="${path}/js/common.js"></script>
     <script src="${path}/home/js/jquery.ui.custom.js"></script> 
     <script src="${path}/home/js/bootstrap.min.js"></script> 
     <script src="${path}/home/js/nicescroll/jquery.nicescroll.min.js"></script> 
@@ -135,6 +136,14 @@
     // resets the menu selection upon entry to this page:
     function resetMenu() {
         document.gomenu.selector.selectedIndex = 2;
+    }
+    
+    function logout(){
+    	confirm("确定要退出登录吗？", function(msg){
+    		if(msg){
+    			window.location.href = "${path}/user/logout";
+    		}
+    	});
     }
 
     // uniform使用示例：

@@ -39,6 +39,17 @@ public class BaseController {
 	}
 	
 	/**
+	 * 设置Session存活时间
+	 * @param request
+	 * @param aliveTimeSeconds
+	 */
+	public static void setSessionAliveTime(HttpServletRequest request, int aliveTimeSeconds) {
+		// 当前是基于单容器的实现
+		HttpSession session = request.getSession(true);
+		session.setMaxInactiveInterval(aliveTimeSeconds);
+	}
+	
+	/**
 	 * 获取当前登录的用户
 	 * @param request
 	 * @return
