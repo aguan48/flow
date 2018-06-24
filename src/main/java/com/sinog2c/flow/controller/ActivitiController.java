@@ -176,9 +176,6 @@ public class ActivitiController extends BaseController{
 	/**
 	 * 部署
 	 */
-	/**
-	 * 部署
-	 */
 	@PostMapping(value = "/deploy")
 	@ResponseBody
 	public Result deploy(@RequestParam("modelId") String modelId, HttpServletRequest request) {
@@ -199,6 +196,7 @@ public class ActivitiController extends BaseController{
 					String processName = modelData.getName() + ".bpmn20.xml";
 					Deployment deployment = repositoryService.createDeployment().name(modelData.getName()).addString(processName, new String(bpmnBytes,"utf-8")).deploy();
 					result.setSuccess(true);
+					result.setObj(deployment.getId());
 					result.setMessage("部署流程成功！");
 		        }
 			}
@@ -212,7 +210,8 @@ public class ActivitiController extends BaseController{
 	 * 导出model的xml文件
 	 */
 	@RequestMapping(value = "/export/{modelId}")
-	public void export(@PathVariable("modelId") String modelId, HttpServletResponse response) {
+	public Result export(@PathVariable("modelId") String modelId, HttpServletResponse response) {
+		Result result = new Result(false, "导出模型失败");
 		response.setCharacterEncoding("UTF-8");  
 		response.setContentType("application/json; charset=utf-8");  
 		try {
@@ -220,18 +219,28 @@ public class ActivitiController extends BaseController{
 			BpmnJsonConverter jsonConverter = new BpmnJsonConverter();
 			//获取节点信息
 			byte[] arg0 = repositoryService.getModelEditorSource(modelData.getId());
-			JsonNode editorNode = new ObjectMapper().readTree(arg0);
-			//将节点信息转换为xml
-			BpmnModel bpmnModel = jsonConverter.convertToBpmnModel(editorNode);
-			BpmnXMLConverter xmlConverter = new BpmnXMLConverter();
-			byte[] bpmnBytes = xmlConverter.convertToXML(bpmnModel);
+			if(arg0 != null) {
+				JsonNode editorNode = new ObjectMapper().readTree(arg0);
+				//将节点信息转换为xml
+				BpmnModel bpmnModel = jsonConverter.convertToBpmnModel(editorNode);
+				if(bpmnModel.getProcesses().size()==0){
+		            result.setMessage("数据模型不符要求，请至少设计一条主线流程。");
+		        } else {
+		        	BpmnXMLConverter xmlConverter = new BpmnXMLConverter();
+					byte[] bpmnBytes = xmlConverter.convertToXML(bpmnModel);
 
-			ByteArrayInputStream in = new ByteArrayInputStream(bpmnBytes);
-			IOUtils.copy(in, response.getOutputStream());
-			//	                String filename = bpmnModel.getMainProcess().getId() + ".bpmn20.xml";
-			String filename = modelData.getName() + ".bpmn20.xml";
-			response.setHeader("Content-Disposition", "attachment; filename=" + java.net.URLEncoder.encode(filename, "UTF-8"));
-			response.flushBuffer();
+					ByteArrayInputStream in = new ByteArrayInputStream(bpmnBytes);
+					IOUtils.copy(in, response.getOutputStream());
+					String filename = modelData.getName() + ".bpmn20.xml";
+					response.setHeader("Content-Disposition", "attachment; filename=" + java.net.URLEncoder.encode(filename, "UTF-8"));
+					response.flushBuffer();
+					result.setSuccess(true);
+					result.setMessage("导出模型成功");
+		        }
+			} else {
+				result.setMessage("模型数据为空，请先设计流程并成功保存，再进行导出。");
+			}
+			
 		} catch (Exception e){
 			PrintWriter out = null;
 			try {
@@ -242,6 +251,7 @@ public class ActivitiController extends BaseController{
 			out.write("未找到对应数据");
 			e.printStackTrace();
 		}
+		return result;
 	}
 
 
