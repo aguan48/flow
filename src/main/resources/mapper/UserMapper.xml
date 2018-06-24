@@ -7,9 +7,9 @@
 		<result column="password" jdbcType="VARCHAR" property="password" />
 		<result column="name" jdbcType="VARCHAR" property="name" />
 		<result column="gender" jdbcType="VARCHAR" property="gender" />
-		<result column="createtime" jdbcType="DATE" property="createTime" />
+		<result column="createtime" jdbcType="TIMESTAMP" property="createTime" />
 		<result column="createid" jdbcType="VARCHAR" property="createId" />
-		<result column="optime" jdbcType="DATE" property="opTime" />
+		<result column="optime" jdbcType="TIMESTAMP" property="opTime" />
 		<result column="opid" jdbcType="VARCHAR" property="opId" />
 		<result column="state" jdbcType="VARCHAR" property="state" />
 	</resultMap>
@@ -39,5 +39,30 @@
 			AND state = #{state, jdbcType=VARCHAR}
 		</if>
 	</select>
+	
+	<update id="updateUser" parameterType="com.sinog2c.flow.domain.User">
+		UPDATE TBFLOW_USERINFO 
+		<trim prefix="set" suffixOverrides=",">
+			<if test="password != null and password != ''">
+				password = #{password, jdbcType=VARCHAR},
+			</if>
+			<if test="name != null and name != ''">
+				name = #{name, jdbcType=VARCHAR},
+			</if>
+			<if test="gender != null and gender != ''">
+				gender = #{gender, jdbcType=VARCHAR},
+			</if>
+			<if test="opTime != null">
+				optime = #{opTime, jdbcType=TIMESTAMP},
+			</if>
+			<if test="opId != null and opId != ''">
+				opid = #{opId, jdbcType=VARCHAR},
+			</if>
+			<if test="state != null and state != ''">
+				state = #{state, jdbcType=VARCHAR},
+			</if>
+		</trim>
+		WHERE username = #{userName, jdbcType=VARCHAR}
+	</update>
 	
 </mapper>

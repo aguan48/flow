@@ -11,4 +11,6 @@ public interface UserMapper {
 	
 	public User selectUserById(Map<String, Object> param);
 	
+	public void updateUser(User user);
+	
 }
