@@ -87,6 +87,11 @@ public class UserController extends BaseController {
 		return "login";
 	}
 	
+	@RequestMapping(value = "/index")
+	public String toIndex(HttpServletRequest request) {
+		return "index";
+	}
+	
 	/**
 	 * 退出登录
 	 * @param request
