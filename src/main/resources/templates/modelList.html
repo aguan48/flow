@@ -3,6 +3,8 @@
 	<#assign path = request.contextPath />
 	<link rel="stylesheet" href="${path}/table/bootstrap/css/bootstrap/bootstrap.min.css" />
 	<link rel="stylesheet" href="${path}/table/bootstrap-table/bootstrap-table.min.css" />
+	<link rel="stylesheet" href="${path}/css/layer-animate.css" />
+	
 	<script src="${path}/table/jquery/jquery.min.js"></script>
 	<script src="${path}/table/bootstrap/js/bootstrap.min.js"></script>
 	<script src="${path}/js/common.js"></script>
@@ -11,12 +13,16 @@
 	<script src="${path}/table/extends/tableExport/jquery.base64.js"></script>
 	<script src="${path}/table/extends/tableExport/tableExport.js"></script>
 	<script src="${path}/table/bootstrap-table/locale/bootstrap-table-zh-CN.js"></script>
+	<script src="${path}/js/tanchu_method.js"></script>
 	<style type="text/css">
 		html,body{
 			margin: 0;
 			padding: 0;
 			width: 100%;
 			height: 100%;
+		}
+		.td-red{
+			color : red;
 		}
 	</style>
 </head>
@@ -103,7 +109,7 @@
 			                  align : 'center' 
 			                }, 
 			                { 
-			                  field : 'revision', 
+			                  field : 'version', 
 			                  title : '版本', 
 			                  align : 'center' 
 			                }, 
@@ -117,6 +123,16 @@
 			                  field : 'key', 
 			                  title : 'key', 
 			                  align : 'center' 
+			                },
+			                {
+			                  field : 'description',
+			                  title : '描述',
+			                  width : 300,
+			                  align : 'center',
+			                  formatter: function (value, row, index) {  
+		                          var metaInfo = JSON.parse(row.metaInfo);
+			                	  return metaInfo.description;  
+		                      }
 			                },
 			                {  
 				              title : "创建时间",  
@@ -134,10 +150,12 @@
 			                  align : 'center', 
 			                  formatter : function(value, row, index) { 
 			                    var e = '<a href="#" mce_href="" onclick="edit(\'' 
-			                        + row.id + '\')">编辑</a> '; 
+			                        + row.id + '\')">编辑</a>&nbsp;&nbsp; '; 
 			                    var d = '<a href="#" mce_href="#" onclick="del(\'' 
-			                        + row.id + '\')">删除</a> '; 
-			                    return e + d; 
+			                        + row.id + '\')">删除</a>&nbsp;&nbsp; '; 
+		                        var f = '<a href="#" mce_href="#" onclick="deploy(\'' 
+			                        + row.id + '\')">发布</a> ';
+			                    return e + d + f; 
 			                  } 
 			  
 			             }] 
@@ -145,6 +163,85 @@
 		    };
 		    return oTableInit; 
 		}; 
+		
+		//新增按钮
+		$("#btn_add").on("click",function(){
+			var content = "<table><tr>"+
+							"<td align='right'>名称：</td><td><input style='width:250px;' class='add_name' id='add_name' /></td><td class='td-red'>*</td>"+
+							"</tr><tr>"+
+							"<td align='right'>key：</td><td><input style='width:250px;' class='add_key' id='add_key' placeholder='字母、文字、下划线' /></td><td class='td-red'>*</td>"+
+							"</tr><tr>"+
+							"<td align='right'>描述：</td><td><input style='width:250px;' class='add_description' id='add_description'/></td><td class='td-red'>*</td>"+
+							"</tr></table>";
+	        var obj={
+	            type: "showSweetAlert",
+	            close: "true",
+	            title: "新增模型",
+	            area:["370px","230px"],
+	            content: content,
+	            btn:["取消","保存"],
+	            callBack1:function(){
+	            	method.msg_close();	            	
+	            },
+	            callBack2:function(){
+	            	addAndSave();
+	            }
+	        };
+	        method.msg_layer(obj);
+	    });
+		
+		//新增记录保存
+		function addAndSave(){
+			var add_name=$("#add_name").val();
+			var add_key=$("#add_key").val();
+			var add_description=$("#add_description").val();
+			if(!add_name || add_name == ""){
+				alert("名称不能为空");
+				return -1;
+			}
+			if(!add_key || add_key == ""){
+				alert("key不能为空");
+				return -1;
+			}else if(!add_key.match( /^[0-9a-zA-Z_]{1,}$/) ){
+				alert("key只能是字母数字下划线的组合");
+				return -1;
+			}
+			if(!add_description || add_description == ""){
+				alert("描述不能为空");
+				return -1;
+			}
+			
+			var data = {
+		        name : add_name,
+		        key  : add_key,
+		        description : add_description
+			};
+			
+			$.ajax({
+				url: "${path}/activiti/create",
+				data: data,
+				type: "post",
+				dataType: "json",
+				success: function (data) {
+					if(data.success){
+						method.msg_close();
+						confirm("保存成功，跳往编辑页面？", function(msg){
+							if(msg){
+								edit(data.obj);
+							}else{
+								$('#reportTable').bootstrapTable('refresh');
+							}
+						});
+					}else{
+						alert(data.message);
+					}
+				},
+				error: function (jqXHR, textStatus, errorThrown) {
+					alert("操作失败!");
+				}
+			});
+			
+		}
 		
 		//转换日期格式(时间戳转换为datetime格式)
 		function changeDateFormat(cellval) {
@@ -161,7 +258,6 @@
 		        return date.getFullYear() + "-" + month + "-" + currentDate + " " + hours + ":" + minutes + ":" + seconds;
 		    }
 		}
-
 		
 		//编辑
 		function edit(id){
@@ -208,6 +304,30 @@
 				alert("至少选择一条记录!");
 			}
 		} 
+		
+		//部署
+		function deploy(id){
+			if(id){
+				confirm("确定要部署选中记录吗？", function(rusult){
+					if(rusult){
+						$.ajax({
+							url: "${path}/activiti/deploy",
+							data: {modelId: id},
+							type: "post",
+							dataType: "json",
+							success: function (data) {
+								alert(data.message);
+							},
+							error: function (jqXHR, textStatus, errorThrown) {
+								alert("操作失败!");
+							}
+						});
+					}
+				})
+			}else{
+				alert("至少选择一条记录!");
+			}
+		}
 	</script>
 </body>
 
