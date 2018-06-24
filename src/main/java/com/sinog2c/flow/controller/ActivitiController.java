@@ -134,12 +134,14 @@ public class ActivitiController extends BaseController{
 	 * 新增模型
 	 * @return 
 	 */  
-	@RequestMapping(value = "/create",method = RequestMethod.POST)  
-	public void getEditor(
+	@RequestMapping(value = "/create")  
+	public DataJsonResult getEditor(
 			@RequestParam("description") String description,
 			@RequestParam("name") String name,
 			@RequestParam("key") String key,
 			HttpServletRequest request, HttpServletResponse response){  
+		DataJsonResult json = new DataJsonResult(false, "新增模型失败！");
+		Map resultMap = new HashMap<>();
 		try {
 			ObjectMapper objectMapper = new ObjectMapper();
 			ObjectNode editorNode = objectMapper.createObjectNode();
@@ -161,10 +163,16 @@ public class ActivitiController extends BaseController{
 
 			repositoryService.saveModel(modelData);
 			repositoryService.addModelEditorSource(modelData.getId(), editorNode.toString().getBytes("utf-8"));
-			response.sendRedirect(request.getContextPath() + "/service/editor?id=" + modelData.getId());
+			resultMap.put("modelId", modelData.getId());
+			json.setSuccess(true);
+			json.setMessage("创建模型成功！！");
+			json.setObj(resultMap);
 		} catch (Exception e) {
 			System.out.println("创建模型失败");
+			json.setSuccess(false);
+			json.setMessage("创建模型失败！");
 		}
+		return json;
 	} 
 
 	/**
