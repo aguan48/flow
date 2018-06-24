@@ -22,8 +22,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -134,14 +134,13 @@ public class ActivitiController extends BaseController{
 	 * 新增模型
 	 * @return 
 	 */  
-	@RequestMapping(value = "/create")  
-	public DataJsonResult getEditor(
+	@PostMapping(value = "/create")  
+	public Result getEditor(
 			@RequestParam("description") String description,
 			@RequestParam("name") String name,
 			@RequestParam("key") String key,
 			HttpServletRequest request, HttpServletResponse response){  
-		DataJsonResult json = new DataJsonResult(false, "新增模型失败！");
-		Map resultMap = new HashMap<>();
+		Result json = new Result(false, "新增模型失败！");
 		try {
 			ObjectMapper objectMapper = new ObjectMapper();
 			ObjectNode editorNode = objectMapper.createObjectNode();
@@ -163,10 +162,9 @@ public class ActivitiController extends BaseController{
 
 			repositoryService.saveModel(modelData);
 			repositoryService.addModelEditorSource(modelData.getId(), editorNode.toString().getBytes("utf-8"));
-			resultMap.put("modelId", modelData.getId());
 			json.setSuccess(true);
 			json.setMessage("创建模型成功！！");
-			json.setObj(resultMap);
+			json.setObj(modelData.getId());
 		} catch (Exception e) {
 			System.out.println("创建模型失败");
 			json.setSuccess(false);
@@ -178,21 +176,32 @@ public class ActivitiController extends BaseController{
 	/**
 	 * 部署
 	 */
-	@RequestMapping(value = "/deploy",method=RequestMethod.POST)
+	/**
+	 * 部署
+	 */
+	@PostMapping(value = "/deploy")
 	@ResponseBody
 	public Result deploy(@RequestParam("modelId") String modelId, HttpServletRequest request) {
 		Result result = new Result(false, "部署流程失败！");
 		try {
 			Model modelData = repositoryService.getModel(modelId);
-			ObjectNode modelNode = (ObjectNode) new ObjectMapper().readTree(repositoryService.getModelEditorSource(modelData.getId()));
-			byte[] bpmnBytes = null;
-			BpmnModel model = new BpmnJsonConverter().convertToBpmnModel(modelNode);
-			bpmnBytes = new BpmnXMLConverter().convertToXML(model);
-			String processName = modelData.getName() + ".bpmn20.xml";
-			Deployment deployment = repositoryService.createDeployment().name(modelData.getName()).addString(processName, new String(bpmnBytes,"utf-8")).deploy();
-			result.setSuccess(true);
-			result.setMessage("部署流程成功！");
-
+			byte[] bytes = repositoryService.getModelEditorSource(modelData.getId());
+			if(bytes == null) {
+				result.setMessage("模型数据为空，请先设计流程并成功保存，再进行发布。");
+			}else {
+				ObjectNode modelNode = (ObjectNode) new ObjectMapper().readTree(bytes);
+				byte[] bpmnBytes = null;
+				BpmnModel model = new BpmnJsonConverter().convertToBpmnModel(modelNode);
+				if(model.getProcesses().size()==0){
+		            result.setMessage("数据模型不符要求，请至少设计一条主线流程。");
+		        }else {
+		        	bpmnBytes = new BpmnXMLConverter().convertToXML(model);
+					String processName = modelData.getName() + ".bpmn20.xml";
+					Deployment deployment = repositoryService.createDeployment().name(modelData.getName()).addString(processName, new String(bpmnBytes,"utf-8")).deploy();
+					result.setSuccess(true);
+					result.setMessage("部署流程成功！");
+		        }
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
