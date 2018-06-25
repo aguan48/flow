@@ -151,6 +151,7 @@ public class UserController extends BaseController {
 			User u = userService.selectUserById(map);
 			String password = Util.getPassword(u.getUserName(), user.getPassword());
 			if(u != null && u.getPassword().equals(password)) {
+				user.setId(u.getId());
 				user.setPassword(Util.getPassword(u.getUserName(), newPassword));
 			}
 		} 

@@ -227,7 +227,10 @@
 			success: function (data) {
 				alert(data.message);
 				if(data.success){
-					$("#user_name").html($("#add_name").val());
+					var name = $("#add_name").val();
+					if(name){
+						$("#user_name").html(name);
+					}
 					method.msg_close();
 				}
 			},
