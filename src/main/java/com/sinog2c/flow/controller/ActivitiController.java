@@ -16,6 +16,7 @@ import org.activiti.editor.constants.ModelDataJsonConstants;
 import org.activiti.editor.language.json.converter.BpmnJsonConverter;
 import org.activiti.engine.RepositoryService;
 import org.activiti.engine.repository.Deployment;
+import org.activiti.engine.repository.DeploymentQuery;
 import org.activiti.engine.repository.Model;
 import org.activiti.engine.repository.ModelQuery;
 import org.apache.commons.io.IOUtils;
@@ -32,6 +33,8 @@ import org.springframework.web.servlet.ModelAndView;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.sinog2c.flow.domain.DeploymentResponse;
+import com.sinog2c.flow.service.CommonFlowQueryListService;
 import com.sinog2c.flow.util.DataJsonResult;
 import com.sinog2c.flow.util.Result;
 
@@ -46,11 +49,19 @@ public class ActivitiController extends BaseController{
 
 	@Autowired
 	private RepositoryService repositoryService;
+	@Autowired
+	private CommonFlowQueryListService commonFlowQueryListService;
 	
 	//模型列表
 	@RequestMapping(value="/modelList")
 	private ModelAndView modelList(HttpServletRequest request) {
 		return new ModelAndView("modelList");
+	}
+	
+	//流程定义列表
+	@RequestMapping(value="/deployList")
+	private ModelAndView deployList(HttpServletRequest request) {
+		return new ModelAndView("deployList");
 	}
 	
 	//编辑模型
@@ -93,7 +104,7 @@ public class ActivitiController extends BaseController{
 			param.put("order", order);
 			param.put("search", search);
 			ModelQuery query = repositoryService.createModelQuery();
-			List<Model> resultList = getModelList(query, param);
+			List<Model> resultList = commonFlowQueryListService.getModelList(query, param);
 			Long total = query.count();
 			json.setRows(resultList);//数据
 			json.setTotal(total);//总记录数
@@ -176,9 +187,6 @@ public class ActivitiController extends BaseController{
 	/**
 	 * 部署
 	 */
-	/**
-	 * 部署
-	 */
 	@PostMapping(value = "/deploy")
 	@ResponseBody
 	public Result deploy(@RequestParam("modelId") String modelId, HttpServletRequest request) {
@@ -244,5 +252,62 @@ public class ActivitiController extends BaseController{
 		}
 	}
 
+	/**
+	 * 查询流程列表
+	 * @return
+	 */
+	@RequestMapping(value="/selectDeploymentAll")
+	@ResponseBody
+	public DataJsonResult selectDeploymentAll(HttpServletRequest request){
+		DataJsonResult json = new DataJsonResult(false, "获取流程列表失败!");
+		try {
+			Integer limit = request.getParameter("limit") == null ? 20 : Integer.parseInt(request.getParameter("limit"));
+			Integer offset = request.getParameter("offset") == null ? 0 : Integer.parseInt(request.getParameter("offset"));
+			String sort = request.getParameter("sort") == null ? "" : request.getParameter("sort"); //排序字段
+			String order = request.getParameter("order") == null ? "" : request.getParameter("order"); //排序方式
+			String search = request.getParameter("search") == null ? "" : request.getParameter("search"); //排序方式
+			Map<String, Object> param = new HashMap<String, Object>();
+			param.put("offset", offset);
+			param.put("limit", limit);
+			param.put("sort", sort);
+			param.put("order", order);
+			param.put("search", search);
+			DeploymentQuery query = repositoryService.createDeploymentQuery();
+			List<DeploymentResponse> resultList = commonFlowQueryListService.getDeploymentList(query, param);
+			Long total = query.count();
+			json.setRows(resultList);//数据
+			json.setTotal(total);//总记录数
+			json.setSuccess(true);
+			json.setMessage("获取模型列表成功!");
+		} catch (Exception e) {
+
+		}
+		return json;
+	}
+	
+	/**
+	 * 批量删除已部署但未执行的流程
+	 * @param ids
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/deleteDeploymentByIds")
+	@ResponseBody
+	public Result deleteDeploymentByIds(String ids,HttpServletRequest request) {
+		Result result = new Result(false, "删除失败!");
+		try {
+			if(StringUtils.isNotEmpty(ids)) {
+				String[] idStr = ids.split(",");
+				for(String id : idStr){
+					repositoryService.deleteDeployment(id);
+				}
+			}
+			result.setSuccess(true);
+			result.setMessage("删除成功!");
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		return result;
+	}
 
 }
