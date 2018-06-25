@@ -167,17 +167,17 @@
 		//新增按钮
 		$("#btn_add").on("click",function(){
 			var content = "<table><tr>"+
-							"<td align='right'>名称：</td><td><input style='width:250px;' class='add_name' id='add_name' /></td><td class='td-red'>*</td>"+
+							"<td align='right'>名称：</td><td><input style='width:250px;' id='add_name' /></td><td class='td-red'>*</td>"+
 							"</tr><tr>"+
-							"<td align='right'>key：</td><td><input style='width:250px;' class='add_key' id='add_key' placeholder='字母、文字、下划线' /></td><td class='td-red'>*</td>"+
+							"<td align='right'>key：</td><td><input style='width:250px;' id='add_key' placeholder='字母、文字、下划线' /></td><td class='td-red'>*</td>"+
 							"</tr><tr>"+
-							"<td align='right'>描述：</td><td><input style='width:250px;' class='add_description' id='add_description'/></td><td class='td-red'>*</td>"+
+							"<td align='right'>描述：</td><td><input style='width:250px;' id='add_description'/></td><td class='td-red'>*</td>"+
 							"</tr></table>";
 	        var obj={
 	            type: "showSweetAlert",
 	            close: "true",
 	            title: "新增模型",
-	            area:["370px","230px"],
+	            area:["370px","270px"],
 	            content: content,
 	            btn:["取消","保存"],
 	            callBack1:function(){

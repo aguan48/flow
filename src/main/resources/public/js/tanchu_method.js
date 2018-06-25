@@ -108,7 +108,4 @@ var method={
             $(".msy-alert").removeClass('showAlert').addClass("hideAlert").remove();
         },obj.time)
     }
-
-
-
 };

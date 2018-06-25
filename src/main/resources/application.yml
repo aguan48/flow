@@ -62,4 +62,4 @@ mybatis:
   config-location: classpath:mybatis-config.xml
 
 #不拦截的url
-excludeList: /user/login,/user/logout,/error
+excludeList: /user/login,/user/logout,/error,/flow

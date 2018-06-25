@@ -7,7 +7,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
-
+/**
+ * 错误页面
+ * @author 许杰
+ *
+ */
 @Controller
 public class ErrorController {
 
