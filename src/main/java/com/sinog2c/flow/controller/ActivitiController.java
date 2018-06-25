@@ -36,7 +36,7 @@ import com.sinog2c.flow.util.DataJsonResult;
 import com.sinog2c.flow.util.Result;
 
 /**
- * 
+ * 流程控制层
  * @author 许杰
  *
  */

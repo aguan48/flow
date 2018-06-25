@@ -19,7 +19,11 @@ import com.sinog2c.flow.domain.User;
 import com.sinog2c.flow.service.UserService;
 import com.sinog2c.flow.util.Result;
 import com.sinog2c.flow.util.Util;
-
+/**
+ * 用户控制层
+ * @author 许杰
+ *
+ */
 @Controller
 @RequestMapping("/user")
 public class UserController extends BaseController {
