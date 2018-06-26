@@ -237,8 +237,9 @@ activitiModeler
 	        	                $rootScope.subSelectionElements = undefined;
 	        	            }
 	                	}
-
-	                    var totalAvailable = jQuery(window).height() - offset.top - mainHeader.height() - 21;
+	                    
+	                   /* var totalAvailable = jQuery(window).height() - offset.top - mainHeader.height() - 21;*/
+	                    var totalAvailable = jQuery(window).height() - offset.top - mainHeader.height() - 60;
 	                    canvas.height(totalAvailable - propSectionHeight);
 	                    jQuery('#paletteSection').height(totalAvailable);
 
