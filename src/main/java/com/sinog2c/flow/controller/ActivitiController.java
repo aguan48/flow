@@ -2,6 +2,8 @@ package com.sinog2c.flow.controller;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -221,8 +224,43 @@ public class ActivitiController extends BaseController{
 	 * 导出model的xml文件
 	 */
 	@RequestMapping(value = "/export/{modelId}")
-	public Result export(@PathVariable("modelId") String modelId, HttpServletResponse response) {
-		Result result = new Result(false, "导出模型失败");
+	public void export(@PathVariable("modelId") String modelId, HttpServletResponse response) {
+		response.setCharacterEncoding("UTF-8");  
+		response.setContentType("application/json; charset=utf-8");  
+		try {
+			Model modelData = repositoryService.getModel(modelId);
+			BpmnJsonConverter jsonConverter = new BpmnJsonConverter();
+			//获取节点信息
+			byte[] arg0 = repositoryService.getModelEditorSource(modelData.getId());
+			JsonNode editorNode = new ObjectMapper().readTree(arg0);
+			//将节点信息转换为xml
+			BpmnModel bpmnModel = jsonConverter.convertToBpmnModel(editorNode);
+        	BpmnXMLConverter xmlConverter = new BpmnXMLConverter();
+			byte[] bpmnBytes = xmlConverter.convertToXML(bpmnModel);
+
+			ByteArrayInputStream in = new ByteArrayInputStream(bpmnBytes);
+			IOUtils.copy(in, response.getOutputStream());
+			String filename = modelData.getName() + ".bpmn20.xml";
+			response.setHeader("Content-Disposition", "attachment; filename=" + java.net.URLEncoder.encode(filename, "UTF-8"));
+			response.flushBuffer();
+		} catch (Exception e){
+			PrintWriter out = null;
+			try {
+				out = response.getWriter();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+			out.write("未找到对应数据");
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 检测所选择模型是否符合导出条件
+	 */
+	@RequestMapping(value = "/judgeModelIsOK/{modelId}")
+	public Result judgeModelIsOK(@PathVariable("modelId") String modelId, HttpServletResponse response) {
+		Result result = new Result(false, "检测模型失败");
 		response.setCharacterEncoding("UTF-8");  
 		response.setContentType("application/json; charset=utf-8");  
 		try {
@@ -235,21 +273,13 @@ public class ActivitiController extends BaseController{
 				//将节点信息转换为xml
 				BpmnModel bpmnModel = jsonConverter.convertToBpmnModel(editorNode);
 				if(bpmnModel.getProcesses().size()==0){
-		            result.setMessage("数据模型不符要求，请至少设计一条主线流程。");
+		            result.setMessage("数据模型不符要求，请至少设计一条主线流程！");
 		        } else {
-		        	BpmnXMLConverter xmlConverter = new BpmnXMLConverter();
-					byte[] bpmnBytes = xmlConverter.convertToXML(bpmnModel);
-
-					ByteArrayInputStream in = new ByteArrayInputStream(bpmnBytes);
-					IOUtils.copy(in, response.getOutputStream());
-					String filename = modelData.getName() + ".bpmn20.xml";
-					response.setHeader("Content-Disposition", "attachment; filename=" + java.net.URLEncoder.encode(filename, "UTF-8"));
-					response.flushBuffer();
 					result.setSuccess(true);
-					result.setMessage("导出模型成功");
+					result.setMessage("所选模型符合导出条件！");
 		        }
 			} else {
-				result.setMessage("模型数据为空，请先设计流程并成功保存，再进行导出。");
+				result.setMessage("模型数据为空，请先设计流程并成功保存，再进行导出！");
 			}
 			
 		} catch (Exception e){
@@ -264,7 +294,7 @@ public class ActivitiController extends BaseController{
 		}
 		return result;
 	}
-
+	
 	/**
 	 * 查询流程列表
 	 * @return
@@ -318,9 +348,71 @@ public class ActivitiController extends BaseController{
 			result.setSuccess(true);
 			result.setMessage("删除成功!");
 		} catch (Exception e) {
-			// TODO: handle exception
+			result.setMessage("删除失败！【注意：】已流转流程不允许删除");
 		}
 		return result;
 	}
-
+	
+	/**
+	 * 流程文件导入部署流程定义--通过xml文件
+	 */
+	@RequestMapping(value = "/deploymentByXML")
+	@ResponseBody
+	public Result deploymentByXML(@RequestParam("import_filepath") MultipartFile import_filepath,
+			@RequestParam("import_name") String import_name,
+			@RequestParam("filename") String filename,
+			HttpServletRequest request) { 
+		Result result = new Result(false, "导入部署流程失败!");
+		try {
+			//获取上传文件
+			InputStream fileInputStream =  import_filepath.getInputStream();
+			repositoryService.createDeployment().name(import_name).addInputStream(filename, fileInputStream).deploy();
+			result.setSuccess(true);
+			result.setMessage("导入部署成功");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
+	/**
+	 * 根据流程id获取流程部署预览图
+	 */
+	@RequestMapping(value = "/getDeploymentPreViewPic")
+	@ResponseBody
+	public void getDeploymentPreViewPic(@RequestParam String id,HttpServletRequest request,
+			HttpServletResponse httpServletResponse)throws Exception  {
+		List<String> names = repositoryService.getDeploymentResourceNames(id);
+		
+		String imageName = null;
+		for(String name : names ) {
+			System.out.println("name:"+name);
+			if(name.indexOf(".png")>0) {
+				imageName = name;
+			}
+		}
+		System.out.println("imageName"+imageName);
+		if(imageName != null) {
+			//通过部署id和文件名称获取输入流
+			InputStream in = repositoryService.getResourceAsStream(id, imageName);
+			OutputStream out = null;
+	        byte[] buf = new byte[1024];
+	        int legth = 0;
+	        try {
+	            out = httpServletResponse.getOutputStream();
+	            while ((legth = in.read(buf)) != -1) {
+	                out.write(buf, 0, legth);
+	            }
+	        } finally {
+	            if (in != null) {
+	                in.close();
+	            }
+	            if (out != null) {
+	                out.close();
+	            }
+	        }
+		}
+	}
+	
 }

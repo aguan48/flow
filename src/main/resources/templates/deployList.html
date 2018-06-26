@@ -36,6 +36,9 @@
 						 <button id="btn_delete" type="button" class="btn btn-default" onclick="batchDelete();">
 			                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>批量删除
 			            </button>
+			            <button id="btn_upload" type="button" class="btn btn-default" onclick="importDeploy();">
+			                <span class="glyphicon glyphicon-upload" aria-hidden="true"></span>导入部署
+			            </button>
 					</div>
 				</table>
 			</div>
@@ -45,6 +48,7 @@
 	<script type="text/javascript">
 		
 		$(function () {
+			//初始化表格
 		    var reportTable = new TableInit();
 		    reportTable.Init();
 		});
@@ -136,8 +140,10 @@
 			                  align : 'center', 
 			                  formatter : function(value, row, index) { 
 			                    var d = '<a href="#" mce_href="#" onclick="del(\'' 
-			                        + row.id + '\')">删除</a>&nbsp;&nbsp; '; 
-			                    return d; 
+			                        + row.id + '\')">删除</a>&nbsp;&nbsp; ';
+		                        var e = '<a href="#" mce_href="#" onclick="preView(\'' 
+			                        + row.id + '\')">预览</a>&nbsp;&nbsp; ';
+			                    return d + e; 
 			                  } 
 			  
 			             }] 
@@ -192,7 +198,100 @@
 			}else{
 				alert("至少选择一条记录!");
 			}
-		} 
+		}
+		
+		//导入部署弹出框
+		function importDeploy(){
+			var content = "<form id='import_form' method='POST'  enctype='multipart/form-data'><table><tr>"+
+				"<td align='right'>部署名称：</td><td><input style='width:250px;' name='import_name' id='import_name' /></td><td class='td-red'>*</td>"+
+				"</tr><tr>"+
+				"<td align='right'>XML文件：</td><td><input style='width:250px; padding: 0; border: 0;' type='file' name='import_filepath' id='import_filepath' /></td><td class='td-red'>*</td>"+
+				"</tr></table></form>";
+			var obj={
+				type: "showSweetAlert",
+				close: "true",
+				title: "导入部署流程",
+				area:["420px","250px"],
+				content: content,
+				btn:["取消","导入"],
+				callBack1:function(){
+					method.msg_close();	            	
+				},
+				callBack2:function(){
+					deploymentByXML();
+				}
+			};
+			method.msg_layer(obj);
+		}
+		
+		//执行部署入库操作
+		function deploymentByXML(){
+			//验证
+			var import_name = $("#import_name").val();
+			var import_filepath = $("#import_filepath").val();
+			if(!import_name){
+				alert("请输入添加部署的名称！");
+				return;
+			}
+			if(!import_filepath){
+				alert("请选择需要上传的文件");
+				return;
+			}else{
+				var i = import_filepath.lastIndexOf(".");
+				var type = import_filepath.substring(i+1);
+				if(!(type && type=="xml")){
+					alert("请确定已经选择导入文件且为XML格式！");
+					return;
+				}
+			}
+			//请求
+			var _index = import_filepath.lastIndexOf("\\");
+			var filename = import_filepath.substring(_index+1);
+			//获取form
+			var form = $('#import_form')[0];
+			var data = new FormData(form);
+			data.append("filename",filename);
+			
+			//无刷上传表单
+			$.ajax({
+				url: "${path}/activiti/deploymentByXML",
+				data: data,
+				enctype: 'multipart/form-data',
+				type: "post",
+				dataType: "json",
+				cache: false,　　
+				processData: false,
+                contentType: false,
+                timeout: 600000,
+				success: function (data) {
+					if(data.success){
+						method.msg_close();
+						alert(data.message);
+						$('#reportTable').bootstrapTable('refresh');
+					}else{
+						alert(data.message);
+					}
+				},
+				error: function (jqXHR, textStatus, errorThrown) {
+					alert("操作失败!");
+				}
+			});
+		}
+		
+		//预览流程图
+		function preView(id) {
+			var url = "${path}/activiti/getDeploymentPreViewPic?id="+id;
+			var content = '<img src="'+url+'" style="margin: 0 auto;width:auto;  max-width:100%; height:350px;"/>';
+			var obj={
+				type: "showSweetAlert",
+				close: "true",
+				title: "流程图预览",
+				area:["1000px","500px"],//宽、高
+				content: content
+			};
+			method.msg_layer(obj);
+		}
+		
 	</script>
 </body>
 
