@@ -5,14 +5,16 @@ import java.util.List;
 import java.util.Map;
 
 import org.activiti.engine.repository.Deployment;
-import org.activiti.engine.repository.DeploymentQuery;
 import org.activiti.engine.repository.Model;
 import org.activiti.engine.repository.ModelQuery;
+import org.activiti.engine.repository.ProcessDefinition;
+import org.activiti.engine.repository.ProcessDefinitionQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.sinog2c.flow.domain.DeploymentResponse;
+import com.sinog2c.flow.domain.ProcessDefinitionResponse;
 import com.sinog2c.flow.service.CommonFlowQueryListService;
 
 /**
@@ -93,52 +95,53 @@ public class CommonFlowQueryListServiceImpl implements CommonFlowQueryListServic
 	 * 已部署流程定义查询列表
 	 */
 	@Override
-	public List<DeploymentResponse> getDeploymentList(DeploymentQuery query, Map<String, Object> param) {
-		List<Deployment> deployments = null;
-		String sort = param.get("sort").toString();
+	public List<ProcessDefinitionResponse> getDeploymentList(ProcessDefinitionQuery query, Map<String, Object> param) {
+		List<ProcessDefinition> processDefinitions = null;
+		String sort = param.get("sort").toString().toLowerCase();
 		String order = param.get("order").toString();
 		String search = param.get("search").toString();
 		/**查询search*/
 		if(!"".equals(search)) {
-			query = query.deploymentNameLike(search);
+			query = query.processDefinitionNameLike(search);
 		}
 		/**判断排序根据*/
-		if("id".equals(sort.toLowerCase())) {
+		if("id".equals(sort)) {
 			/**正序or倒序*/
 			if("asc".equals(order)) {
-				query = query.orderByDeploymentId().asc();
+				query = query.orderByProcessDefinitionId().asc();
 			}else if("desc".equals(order)){
-				query = query.orderByDeploymentId().desc();
+				query = query.orderByProcessDefinitionId().desc();
 			}
-		}else if("name".equals(sort.toLowerCase())) {
+		}else if("name".equals(sort)) {
 			/**正序or倒序*/
 			if("asc".equals(order)) {
-				query = query.orderByDeploymentName().asc();
+				query = query.orderByProcessDefinitionName().asc();
 			}else if("desc".equals(order)){
-				query = query.orderByDeploymentName().desc();
+				query = query.orderByProcessDefinitionName().desc();
 			}
-		}else if("deploymenttime".equals(sort.toLowerCase())) {
+		}else if("version".equals(sort)) {
 			/**正序or倒序*/
 			if("asc".equals(order)) {
-				query = query.orderByDeploymenTime().asc();
+				query = query.orderByProcessDefinitionVersion().asc();
 			}else if("desc".equals(order)){
-				query = query.orderByDeploymenTime().desc();
+				query = query.orderByProcessDefinitionVersion().desc();
 			}
-		}else if("tenantid".equals(sort.toLowerCase())) {
+		}else if("key".equals(sort)) {
 			/**正序or倒序*/
 			if("asc".equals(order)) {
-				query = query.orderByTenantId().asc();
+				query = query.orderByProcessDefinitionKey().asc();
 			}else if("desc".equals(order)){
-				query = query.orderByTenantId().desc();
+				query = query.orderByProcessDefinitionKey().desc();
 			}
 		}
 		
-		deployments = query.listPage(Integer.parseInt(param.get("offset").toString()), 
+		processDefinitions = query.listPage(Integer.parseInt(param.get("offset").toString()), 
 					Integer.parseInt(param.get("limit").toString()));
-		List<DeploymentResponse> list = new ArrayList<>();
-        for(Deployment deployment: deployments){
-            list.add(new DeploymentResponse(deployment));
+		List<ProcessDefinitionResponse> list = new ArrayList<>();
+        for(ProcessDefinition processDefinition: processDefinitions){
+            list.add(new ProcessDefinitionResponse(processDefinition));
         }
+		
 		return list;
 	}
 	

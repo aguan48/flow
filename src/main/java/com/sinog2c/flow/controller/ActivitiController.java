@@ -18,9 +18,9 @@ import org.activiti.editor.constants.ModelDataJsonConstants;
 import org.activiti.editor.language.json.converter.BpmnJsonConverter;
 import org.activiti.engine.RepositoryService;
 import org.activiti.engine.repository.Deployment;
-import org.activiti.engine.repository.DeploymentQuery;
 import org.activiti.engine.repository.Model;
 import org.activiti.engine.repository.ModelQuery;
+import org.activiti.engine.repository.ProcessDefinitionQuery;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +36,7 @@ import org.springframework.web.servlet.ModelAndView;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.sinog2c.flow.domain.DeploymentResponse;
+import com.sinog2c.flow.domain.ProcessDefinitionResponse;
 import com.sinog2c.flow.service.CommonFlowQueryListService;
 import com.sinog2c.flow.util.DataJsonResult;
 import com.sinog2c.flow.util.Result;
@@ -219,7 +219,9 @@ public class ActivitiController extends BaseController{
 		}
 		return result;
 	}
-
+	
+	
+	
 	/**
 	 * 导出model的xml文件
 	 */
@@ -296,13 +298,13 @@ public class ActivitiController extends BaseController{
 	}
 	
 	/**
-	 * 查询流程列表
+	 * 查询流程定义列表
 	 * @return
 	 */
 	@RequestMapping(value="/selectDeploymentAll")
 	@ResponseBody
 	public DataJsonResult selectDeploymentAll(HttpServletRequest request){
-		DataJsonResult json = new DataJsonResult(false, "获取流程列表失败!");
+		DataJsonResult json = new DataJsonResult(false, "获取流程定义列表失败!");
 		try {
 			Integer limit = request.getParameter("limit") == null ? 20 : Integer.parseInt(request.getParameter("limit"));
 			Integer offset = request.getParameter("offset") == null ? 0 : Integer.parseInt(request.getParameter("offset"));
@@ -315,13 +317,13 @@ public class ActivitiController extends BaseController{
 			param.put("sort", sort);
 			param.put("order", order);
 			param.put("search", search);
-			DeploymentQuery query = repositoryService.createDeploymentQuery();
-			List<DeploymentResponse> resultList = commonFlowQueryListService.getDeploymentList(query, param);
+			ProcessDefinitionQuery query = repositoryService.createProcessDefinitionQuery();
+			List<ProcessDefinitionResponse> resultList = commonFlowQueryListService.getDeploymentList(query, param);
 			Long total = query.count();
 			json.setRows(resultList);//数据
 			json.setTotal(total);//总记录数
 			json.setSuccess(true);
-			json.setMessage("获取模型列表成功!");
+			json.setMessage("获取流程定义列表成功!");
 		} catch (Exception e) {
 
 		}

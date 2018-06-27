@@ -121,7 +121,7 @@
 			                }, 
 			                { 
 			                  field : 'key', 
-			                  title : 'key', 
+			                  title : '模型的关键字', 
 			                  align : 'center' 
 			                },
 			                {
@@ -171,7 +171,7 @@
 			var content = "<table><tr>"+
 							"<td align='right'>名称：</td><td><input style='width:250px;' id='add_name' /></td><td class='td-red'>*</td>"+
 							"</tr><tr>"+
-							"<td align='right'>key：</td><td><input style='width:250px;' id='add_key' placeholder='字母、文字、下划线' /></td><td class='td-red'>*</td>"+
+							"<td align='right'>模型的关键字：</td><td><input style='width:250px;' id='add_key' placeholder='字母、文字、下划线' /></td><td class='td-red'>*</td>"+
 							"</tr><tr>"+
 							"<td align='right'>描述：</td><td><input style='width:250px;' id='add_description'/></td><td class='td-red'>*</td>"+
 							"</tr></table>";
@@ -179,7 +179,7 @@
 	            type: "showSweetAlert",
 	            close: "true",
 	            title: "新增模型",
-	            area:["370px","270px"],
+	            area:["450px","270px"],
 	            content: content,
 	            btn:["取消","保存"],
 	            callBack1:function(){
@@ -202,10 +202,10 @@
 				return -1;
 			}
 			if(!add_key || add_key == ""){
-				alert("key不能为空");
+				alert("模型的关键字不能为空");
 				return -1;
 			}else if(!add_key.match( /^[0-9a-zA-Z_]{1,}$/) ){
-				alert("key只能是字母数字下划线的组合");
+				alert("模型的关键字只能是字母数字下划线的组合");
 				return -1;
 			}
 			if(!add_description || add_description == ""){
@@ -307,7 +307,7 @@
 			}
 		} 
 		
-		//部署
+		//发布部署
 		function deploy(id){
 			if(id){
 				confirm("确定要部署选中记录吗？", function(rusult){
@@ -330,6 +330,9 @@
 				alert("至少选择一条记录!");
 			}
 		}
+		
+		//调用后台发布部署方法
+		
 		
 		//导出
 		function exportToXML(id){
