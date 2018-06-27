@@ -176,6 +176,8 @@ public class CommonFlowQueryListServiceImpl implements CommonFlowQueryListServic
 			}else if("desc".equals(order)){
 				query = query.orderByProcessInstanceEndTime().desc();
 			}
+		}else {
+			query = query.orderByProcessInstanceEndTime().desc();
 		}
 		
 		historicProcessInstances = query.listPage(Integer.parseInt(param.get("offset").toString()), 
@@ -183,7 +185,6 @@ public class CommonFlowQueryListServiceImpl implements CommonFlowQueryListServic
 		
 		List<HistoricProcessInstanceResponse> list = new ArrayList<>();
 		for(HistoricProcessInstance historicProcessInstance: historicProcessInstances){
-			System.out.println(historicProcessInstance.getName());
             list.add(new HistoricProcessInstanceResponse(historicProcessInstance));
         }
 		
@@ -208,6 +209,8 @@ public class CommonFlowQueryListServiceImpl implements CommonFlowQueryListServic
 			}else if("desc".equals(order)){
 				query = query.orderByHistoricActivityInstanceStartTime().desc();
 			}
+		}else {
+			query = query.orderByHistoricActivityInstanceStartTime().desc();
 		}
 		
 		historicActivityInstances = query.listPage(Integer.parseInt(param.get("offset").toString()), 
@@ -239,6 +242,8 @@ public class CommonFlowQueryListServiceImpl implements CommonFlowQueryListServic
 			}else if("desc".equals(order)){
 				query = query.orderByHistoricTaskInstanceStartTime().desc();
 			}
+		}else {
+			query = query.orderByHistoricTaskInstanceStartTime().desc();
 		}
 		
 		historicTaskInstances = query.listPage(Integer.parseInt(param.get("offset").toString()), 
