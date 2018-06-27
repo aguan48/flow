@@ -92,7 +92,6 @@ public class LoginInterceptor implements HandlerInterceptor {
 			response.setHeader("CONTENTPATH", url);  
 			response.setStatus(HttpServletResponse.SC_FORBIDDEN);  
 		}else{  
-			System.out.println("1111");
 			response.sendRedirect(url);
 		}  
 	}
