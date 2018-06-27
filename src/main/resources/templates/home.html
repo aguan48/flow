@@ -53,10 +53,10 @@
                     <span>流程管理</span> 
                     <!-- <span class="label label-important">1</span> -->
                 </a>
-                <ul>
+                <ul onclick="javascript:insertHomeText('模型管理');">
                     <li><a class="menu_a" link="${path}/activiti/modelList"><i class="icon icon-caret-right"></i>模型管理</a></li>
                 </ul>
-                <ul>
+                <ul onclick="javascript:insertHomeText('流程定义');">
                     <li><a class="menu_a" link="${path}/activiti/deployList"><i class="icon icon-caret-right"></i>流程定义</a></li>
                 </ul>
             </li>
@@ -65,16 +65,16 @@
                     <i class="icon icon-random"></i> 
                     <span>流程历史记录</span> 
                 </a>
-				<ul>
+				<ul onclick="javascript:insertHomeText('历史流程实例');">
                     <li><a class="menu_a" link="${path}/activiti/toHistoryProcessInstancePage"><i class="icon icon-caret-right"></i>历史流程实例</a></li>
                 </ul>
-                <ul>
+                <ul onclick="javascript:insertHomeText('历史流程活动');">
                     <li><a class="menu_a" link="${path}/activiti/toHistoryActivityInstancePage"><i class="icon icon-caret-right"></i>历史流程活动</a></li>
                 </ul>
-                <ul>
+                <ul onclick="javascript:insertHomeText('历史流程任务');">
                     <li><a class="menu_a" link="${path}/activiti/toHistoryTaskInstancePage"><i class="icon icon-caret-right"></i>历史流程任务</a></li>
                 </ul>
-                <ul>
+                <ul onclick="javascript:insertHomeText('历史流程变量');">
                     <li><a class="menu_a" link="${path}/activiti/toHistoryVariableInstancePage"><i class="icon icon-caret-right"></i>历史流程变量</a></li>
                 </ul>
             </li>
@@ -96,7 +96,10 @@
     <div id="content">
         <!--breadcrumbs-->
         <div id="content-header">
-          <div id="breadcrumb"> <a href="${path}/user/home" title="回到桌面" class="tip-bottom"><i class="icon-home"></i>我的桌面</a></div>
+          <div id="breadcrumb"> 
+          		<a href="${path}/user/home" title="回到桌面" class="tip-bottom"><i class="icon-home"></i>我的桌面</a>
+          		<span id="home_span" style="margin-left:4px;"></span>
+          </div>
         </div>
         <!--End-breadcrumbs-->
         <iframe src="${path}/user/index" id="iframe-main" frameborder='0' style="width:100%;"></iframe>
@@ -112,7 +115,12 @@
     <script src="${path}/home/js/matrix.js"></script> 
     <script src="${path}/js/tanchu_method.js"></script>
     <script type="text/javascript">
-
+	
+    //填充home
+    function insertHomeText(text){
+    	$("#home_span").html(text);
+    }
+    
     //初始化相关元素高度
     function init(){
         $("body").height($(window).height()-80);
