@@ -50,27 +50,35 @@
             <li class="submenu"> 
                 <a href="#">
                     <i class="icon icon-sitemap"></i> 
-                    <span>模型管理</span> 
+                    <span>流程管理</span> 
                     <!-- <span class="label label-important">1</span> -->
                 </a>
                 <ul>
                     <li><a class="menu_a" link="${path}/activiti/modelList"><i class="icon icon-caret-right"></i>模型管理</a></li>
                 </ul>
                 <ul>
-                    <li><a class="menu_a" link="${path}/activiti/deployList"><i class="icon icon-caret-right"></i>流程管理</a></li>
+                    <li><a class="menu_a" link="${path}/activiti/deployList"><i class="icon icon-caret-right"></i>流程定义</a></li>
                 </ul>
             </li>
-           <!--  <li class="submenu">
+           <li class="submenu">
 				<a href="#">
                     <i class="icon icon-random"></i> 
-                    <span>流程管理</span> 
-                    <span class="label label-important">1</span>
+                    <span>流程历史记录</span> 
                 </a>
 				<ul>
-                    <li><a class="menu_a" link="table.html"><i class="icon icon-caret-right"></i>流程管理</a></li>
+                    <li><a class="menu_a" link="${path}/activiti/toHistoryProcessInstancePage"><i class="icon icon-caret-right"></i>历史流程实例</a></li>
+                </ul>
+                <ul>
+                    <li><a class="menu_a" link="${path}/activiti/toHistoryActivityInstancePage"><i class="icon icon-caret-right"></i>历史流程活动</a></li>
+                </ul>
+                <ul>
+                    <li><a class="menu_a" link="${path}/activiti/toHistoryTaskInstancePage"><i class="icon icon-caret-right"></i>历史流程任务</a></li>
+                </ul>
+                <ul>
+                    <li><a class="menu_a" link="${path}/activiti/toHistoryVariableInstancePage"><i class="icon icon-caret-right"></i>历史流程变量</a></li>
                 </ul>
             </li>
-            <li class="submenu"> 
+            <!--  <li class="submenu"> 
                 <a href="#">
                     <i class="icon icon-stop"></i> 
                     <span>系统管理</span> 

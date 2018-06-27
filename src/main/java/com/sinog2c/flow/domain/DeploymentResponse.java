@@ -5,7 +5,14 @@ import org.activiti.engine.repository.Deployment;
 import org.activiti.rest.common.util.DateToStringSerializer;
 
 import java.util.Date;
-
+/**
+ * 流程发布信息转换类
+* @ClassName:：DeploymentResponse 
+* @Description： TODO
+* @author ：gxx  
+* @date ：2018年6月27日 下午4:39:58 
+*
+ */
 public class DeploymentResponse {
 
   private String id;
@@ -16,11 +23,13 @@ public class DeploymentResponse {
   private String tenantId;
   
   public DeploymentResponse(Deployment deployment) {
-    setId(deployment.getId());
-    setName(deployment.getName());
-    setDeploymentTime(deployment.getDeploymentTime());
-    setCategory(deployment.getCategory());
-    setTenantId(deployment.getTenantId());
+    setId(deployment.getId() == null ? "": deployment.getId());
+    setName(deployment.getName() == null ? "": deployment.getName());
+    if(deployment.getDeploymentTime() != null) {
+    	setDeploymentTime(deployment.getDeploymentTime());
+    }
+    setCategory(deployment.getCategory() == null ? "": deployment.getCategory());
+    setTenantId(deployment.getTenantId() == null ? "": deployment.getTenantId());
   }
   
   public String getId() {

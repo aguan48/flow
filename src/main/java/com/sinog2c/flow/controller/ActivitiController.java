@@ -16,7 +16,12 @@ import org.activiti.bpmn.converter.BpmnXMLConverter;
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.editor.constants.ModelDataJsonConstants;
 import org.activiti.editor.language.json.converter.BpmnJsonConverter;
+import org.activiti.engine.HistoryService;
 import org.activiti.engine.RepositoryService;
+import org.activiti.engine.history.HistoricActivityInstanceQuery;
+import org.activiti.engine.history.HistoricProcessInstanceQuery;
+import org.activiti.engine.history.HistoricTaskInstanceQuery;
+import org.activiti.engine.history.HistoricVariableInstanceQuery;
 import org.activiti.engine.repository.Deployment;
 import org.activiti.engine.repository.Model;
 import org.activiti.engine.repository.ModelQuery;
@@ -36,6 +41,10 @@ import org.springframework.web.servlet.ModelAndView;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.sinog2c.flow.domain.HistoricActivityInstanceResponse;
+import com.sinog2c.flow.domain.HistoricProcessInstanceResponse;
+import com.sinog2c.flow.domain.HistoricTaskInstanceResponse;
+import com.sinog2c.flow.domain.HistoricVariableInstanceResponse;
 import com.sinog2c.flow.domain.ProcessDefinitionResponse;
 import com.sinog2c.flow.service.CommonFlowQueryListService;
 import com.sinog2c.flow.util.DataJsonResult;
@@ -54,6 +63,8 @@ public class ActivitiController extends BaseController{
 	private RepositoryService repositoryService;
 	@Autowired
 	private CommonFlowQueryListService commonFlowQueryListService;
+	@Autowired
+	private HistoryService historyService;
 	
 	//模型列表
 	@RequestMapping(value="/modelList")
@@ -416,5 +427,161 @@ public class ActivitiController extends BaseController{
 	        }
 		}
 	}
+	
+	
+	
+	/**流程实例历史、流程活动历史、流程任务历史、流程变量历史*/
+	
+	//流程实例历史页面
+	@RequestMapping(value="/toHistoryProcessInstancePage")
+	private ModelAndView toHistoryProcessInstancePage(HttpServletRequest request) {
+		return new ModelAndView("historyProcessInstance");
+	}
+	
+	/**
+	 * 流程实例历史
+	 */
+	@RequestMapping(value = "/queryHistoricProcessInstance")
+	@ResponseBody
+	public DataJsonResult queryHistoricProcessInstance(HttpServletRequest request) {
+		DataJsonResult json = new DataJsonResult(false, "获取模型列表失败!");
+		try {
+			Map<String, Object> param = this.dealQueryListParam(request);
+			HistoricProcessInstanceQuery query = historyService.createHistoricProcessInstanceQuery();
+			List<HistoricProcessInstanceResponse> resultList = commonFlowQueryListService.queryHistoricProcessInstance(query, param);
+			Long total = query.count();
+			json.setRows(resultList);//数据
+			json.setTotal(total);//总记录数
+			json.setSuccess(true);
+			json.setMessage("获取模型列表成功!");
+		} catch (Exception e) {
+
+		}
+		return json;
+	}
+	
+	//流程活动历史页面
+	@RequestMapping(value="/toHistoryActivityInstancePage")
+	private ModelAndView toHistoryActivityInstancePage(HttpServletRequest request) {
+		return new ModelAndView("historyActivityInstance");
+	}
+	/**
+	 * 流程历史活动
+	 */
+	@RequestMapping(value = "/queryHistoricActivityInstance")
+	@ResponseBody
+	public DataJsonResult queryHistoricActivityInstance(HttpServletRequest request) {
+		DataJsonResult json = new DataJsonResult(false, "获取模型列表失败!");
+		try {
+			Map<String, Object> param = this.dealQueryListParam(request);
+			HistoricActivityInstanceQuery query = historyService.createHistoricActivityInstanceQuery();
+			List<HistoricActivityInstanceResponse> resultList = commonFlowQueryListService.queryHistoricActivityInstance(query, param);
+			Long total = query.count();
+			json.setRows(resultList);//数据
+			json.setTotal(total);//总记录数
+			json.setSuccess(true);
+			json.setMessage("获取模型列表成功!");
+		} catch (Exception e) {
+
+		}
+		return json;
+	}
+	
+	//流程任务历史页面
+	@RequestMapping(value="/toHistoryTaskInstancePage")
+	private ModelAndView toHistoryTaskInstancePage(HttpServletRequest request) {
+		return new ModelAndView("historyTaskInstance");
+	}
+	/**
+	 * 流程任务历史
+	 */
+	@RequestMapping(value = "/queryHistoricTaskInstance")
+	@ResponseBody
+	public DataJsonResult queryHistoricTaskInstance(HttpServletRequest request) {
+		DataJsonResult json = new DataJsonResult(false, "获取模型列表失败!");
+		try {
+			Map<String, Object> param = this.dealQueryListParam(request);
+			HistoricTaskInstanceQuery query = historyService.createHistoricTaskInstanceQuery();
+			List<HistoricTaskInstanceResponse> resultList = commonFlowQueryListService.queryHistoricTaskInstance(query, param);
+			Long total = query.count();
+			json.setRows(resultList);//数据
+			json.setTotal(total);//总记录数
+			json.setSuccess(true);
+			json.setMessage("获取模型列表成功!");
+		} catch (Exception e) {
+
+		}
+		return json;
+	}
+	
+	//流程任务历史页面
+	@RequestMapping(value="/toHistoryVariableInstancePage")
+	private ModelAndView toHistoryVariableInstancePage(HttpServletRequest request) {
+		return new ModelAndView("historyVariableInstance");
+	}
+	/**
+	 * 流程变量历史
+	 */
+	@RequestMapping(value = "/queryHistoricVariableInstance")
+	@ResponseBody
+	public DataJsonResult queryHistoricVariableInstance(HttpServletRequest request) {
+		DataJsonResult json = new DataJsonResult(false, "获取模型列表失败!");
+		try {
+			Map<String, Object> param = this.dealQueryListParam(request);
+			HistoricVariableInstanceQuery query = historyService.createHistoricVariableInstanceQuery();
+			List<HistoricVariableInstanceResponse> resultList = commonFlowQueryListService.queryHistoricVariableInstance(query, param);
+			Long total = query.count();
+			json.setRows(resultList);//数据
+			json.setTotal(total);//总记录数
+			json.setSuccess(true);
+			json.setMessage("获取模型列表成功!");
+		} catch (Exception e) {
+
+		}
+		return json;
+	}
+	
+	//处理列表请求传递数据
+	public Map<String,Object> dealQueryListParam(HttpServletRequest request){
+		Map<String, Object> param = new HashMap<String, Object>();
+		
+		Integer limit = request.getParameter("limit") == null ? 20 : Integer.parseInt(request.getParameter("limit"));
+		Integer offset = request.getParameter("offset") == null ? 0 : Integer.parseInt(request.getParameter("offset"));
+		String sort = request.getParameter("sort") == null ? "" : request.getParameter("sort"); //排序字段
+		String order = request.getParameter("order") == null ? "" : request.getParameter("order"); //排序方式
+		String search = request.getParameter("search") == null ? "" : request.getParameter("search"); //排序方式
+		param.put("offset", offset);
+		param.put("limit", limit);
+		param.put("sort", sort);
+		param.put("order", order);
+		param.put("search", search);
+		
+		return param;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 }

@@ -1,7 +1,14 @@
 package com.sinog2c.flow.domain;
 
 import org.activiti.engine.repository.ProcessDefinition;
-
+/**
+ * 流程定义转换类
+* @ClassName:：ProcessDefinitionResponse 
+* @Description： TODO
+* @author ：gxx  
+* @date ：2018年6月27日 下午4:40:18 
+*
+ */
 public class ProcessDefinitionResponse {
 	
 	  private String id;
@@ -18,17 +25,16 @@ public class ProcessDefinitionResponse {
 	  private String tenantId;
 	 
 	  public ProcessDefinitionResponse(ProcessDefinition processDefinition) {
-	    setId(processDefinition.getId());
-	    setName(processDefinition.getName());
-	    setCategory(processDefinition.getCategory());
-	    setTenantId(processDefinition.getTenantId());
-	    setDescription(processDefinition.getDescription());
-	    setDeploymentId(processDefinition.getDeploymentId());
+	    setId(processDefinition.getId() == null ? "":processDefinition.getId());
+	    setName(processDefinition.getName() == null ? "":processDefinition.getName());
+	    setCategory(processDefinition.getCategory() == null ? "":processDefinition.getCategory());
+	    setTenantId(processDefinition.getTenantId() == null ? "":processDefinition.getTenantId());
+	    setDescription(processDefinition.getDescription() == null ? "":processDefinition.getDescription());
+	    setDeploymentId(processDefinition.getDeploymentId() == null ? "":processDefinition.getDeploymentId());
 	    setVersion(processDefinition.getVersion());
-	    setResourceName(processDefinition.getResourceName());
-	    setDiagramResourceName(processDefinition.getDiagramResourceName());
-	    setHasGraphicalNotation(processDefinition.hasGraphicalNotation());
-	    setKey(processDefinition.getKey());
+	    setResourceName(processDefinition.getResourceName() == null ? "":processDefinition.getResourceName());
+	    setDiagramResourceName(processDefinition.getDiagramResourceName() == null ? "":processDefinition.getDiagramResourceName());
+	    setKey(processDefinition.getKey() == null ? "":processDefinition.getKey());
 	  }  
 	  
 	public String getId() {
