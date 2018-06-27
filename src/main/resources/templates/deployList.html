@@ -208,13 +208,19 @@
 				"</tr><tr>"+
 				"<td align='right'>XML文件：</td><td><input style='width:290px; padding: 0; border: 0;' type='file' name='import_filepath' id='import_filepath' /></td><td class='td-red'>*</td>"+
 				"</tr><tr>"+
-				"<td colspan='3' style='color:red;'>【注意】导入部署流程的KEY为XML文件process标签ID</td>"+
+				"<td colspan='3' style='color:red;'>【注意】</td>"+
+				"</tr><tr>"+
+				"<td colspan='3' style='color:red;'>&nbsp;&nbsp;&nbsp;&nbsp;*导入部署流程的KEY为XML文件process标签的id！</td>"+
+				"</tr><tr>"+
+				"<td colspan='3' style='color:red;'>&nbsp;&nbsp;&nbsp;&nbsp;*导入部署流程的名称为XML文件process标签的name！</td>"+
+				"</tr><tr>"+
+				"<td colspan='3' style='color:red;'>&nbsp;&nbsp;&nbsp;&nbsp;*此处填充部署名称存于部署表，列表不做展示！</td>"+
 				"</tr></table></form>";
 			var obj={
 				type: "showSweetAlert",
 				close: "true",
 				title: "导入部署流程",
-				area:["450px","280px"],
+				area:["460px","360px"],
 				content: content,
 				btn:["取消","导入"],
 				callBack1:function(){
