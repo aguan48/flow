@@ -3,31 +3,32 @@
 <mapper namespace="com.sinog2c.flow.mapper.UserMapper">
 	<resultMap id="BaseResultMap" type="com.sinog2c.flow.domain.User">
 		<id column="id" jdbcType="VARCHAR" property="id" />
+		<result column="userid" jdbcType="VARCHAR" property="userid" />
 		<result column="username" jdbcType="VARCHAR" property="userName" />
 		<result column="password" jdbcType="VARCHAR" property="password" />
 		<result column="name" jdbcType="VARCHAR" property="name" />
 		<result column="gender" jdbcType="VARCHAR" property="gender" />
-		<result column="createtime" jdbcType="TIMESTAMP" property="createTime" />
-		<result column="createid" jdbcType="VARCHAR" property="createId" />
+		<result column="crtime" jdbcType="TIMESTAMP" property="crTime" />
+		<result column="crid" jdbcType="VARCHAR" property="crId" />
 		<result column="optime" jdbcType="TIMESTAMP" property="opTime" />
 		<result column="opid" jdbcType="VARCHAR" property="opId" />
-		<result column="state" jdbcType="VARCHAR" property="state" />
+		<result column="isdelete" jdbcType="VARCHAR" property="isdelete" />
 	</resultMap>
 	
 	<sql id="Base_Column_List">
-		id, username, password, name, gender, createtime, createid, optime, opid, state	
+		id, userid, password, name, gender, crTime, crId, optime, opid, isdelete	
 	</sql>
 	
 	<select id="selectUserById" parameterType="Map" resultMap="BaseResultMap">
 		SELECT  
 			<include refid="Base_Column_List" />
-		FROM TBFLOW_USERINFO
+		FROM TBSYS_USERINFO
 		WHERE 1=1
 		<if test="id != null and id != ''">
 			AND id = #{id, jdbcType=VARCHAR}
 		</if>
-		<if test="username != null and username != ''">
-			AND username = #{username, jdbcType=VARCHAR}
+		<if test="userid != null and userid != ''">
+			AND userid = #{userid, jdbcType=VARCHAR}
 		</if>
 		<if test="password != null and password != ''">
 			AND password = #{password, jdbcType=VARCHAR}
@@ -35,13 +36,13 @@
 		<if test="name != null and name != ''">
 			AND name = #{name, jdbcType=VARCHAR}
 		</if>
-		<if test="state != null and state != ''">
-			AND state = #{state, jdbcType=VARCHAR}
+		<if test="isdelete != null and isdelete != ''">
+			AND isdelete = #{isdelete, jdbcType=VARCHAR}
 		</if>
 	</select>
 	
 	<update id="updateUser" parameterType="com.sinog2c.flow.domain.User">
-		UPDATE TBFLOW_USERINFO 
+		UPDATE TBSYS_USERINFO 
 		<trim prefix="set" suffixOverrides=",">
 			<if test="password != null and password != ''">
 				password = #{password, jdbcType=VARCHAR},
@@ -58,11 +59,11 @@
 			<if test="opId != null and opId != ''">
 				opid = #{opId, jdbcType=VARCHAR},
 			</if>
-			<if test="state != null and state != ''">
-				state = #{state, jdbcType=VARCHAR},
+			<if test="isdelete != null and isdelete != ''">
+				isdelete = #{isdelete, jdbcType=VARCHAR},
 			</if>
 		</trim>
-		WHERE username = #{userName, jdbcType=VARCHAR}
+		WHERE userid = #{userid, jdbcType=VARCHAR}
 	</update>
 	
 </mapper>

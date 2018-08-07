@@ -1,10 +1,10 @@
 function submitValidate(){
 	var flag = true;
-	var username = $("#username").val();
+	var userid = $("#userid").val();
 	var password = $("#password").val();
-	if(!username){
-		$("#username_error").html("请输入用户名");
-		$("#username").focus();
+	if(!userid){
+		$("#userid_error").html("请输入用户名");
+		$("#userid").focus();
 		flag = false;
 	}
 	if(!password){
@@ -28,10 +28,10 @@ $(function(){
 	        $('#login').submit();
 	    }    
 	});
-	var username = $("#username").val();
+	var userid = $("#userid").val();
 	var password = $("#password").val();
-	if(!username){
-		$("#username").focus();
+	if(!userid){
+		$("#userid").focus();
 	}else if(!password){
 		$("#password").focus();
 	}

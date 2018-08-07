@@ -44,5 +44,9 @@ public class Util {
 	public static String getPassword(String username, String password) {
 		return md5(md5(username+password)+username);
 	}
+	
+//	public static void main(String[] args) {
+//		System.out.println(Util.getPassword("flowroot", "1"));
+//	}
 
 }

@@ -78,16 +78,15 @@
                     <li><a class="menu_a" link="${path}/activiti/toHistoryVariableInstancePage"><i class="icon icon-caret-right"></i>历史流程变量</a></li>
                 </ul>
             </li>
-            <!--  <li class="submenu"> 
+            <li class="submenu"> 
                 <a href="#">
                     <i class="icon icon-stop"></i> 
-                    <span>系统管理</span> 
-                    <span class="label label-important">1</span>
+                    <span>流程文档</span> 
                 </a>
-                <ul>
-                    <li><a class="menu_a" link="table.html"><i class="icon icon-caret-right"></i>用户管理</a></li>
+                <ul onclick="javascript:insertHomeText('流程文档');">
+                    <li><a class="menu_a" link="${path}/MDDocument/mdEditor"><i class="icon icon-caret-right"></i>流程文档</a></li>
                 </ul>
-            </li> -->
+            </li>
         </ul>
     </div>
     <!--sidebar-menu-->
@@ -184,7 +183,7 @@
     
     function showEditPage(user){
     	var content = "<table class='tb_layer'><tr>"+
-				"<td align='right'>用&ensp;户&ensp;名：</td><td><input style='width:250px;' readonly='true' value='"+user.userName+"' id='add_username' /></td>"+
+				"<td align='right'>用&ensp;户&ensp;名：</td><td><input style='width:250px;' readonly='true' value='"+user.userid+"' id='add_userid' /></td>"+
 				"</tr><tr>"+
 				"<td align='right'>姓&emsp;&emsp;名：</td><td><input style='width:250px;' value='"+user.name+"' id='add_name' /></td>"+
 				"</tr><tr>"+
@@ -232,7 +231,7 @@
     	$.ajax({
 			url: "${path}/user/editUser",
 			data: {
-				userName: $("#add_username").val(),
+				userid: $("#add_userid").val(),
 				name: $("#add_name").val(),
 				gender: $('input:radio:checked').val(),
 				password: $("#add_password").val(),

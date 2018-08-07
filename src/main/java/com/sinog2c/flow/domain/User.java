@@ -6,27 +6,27 @@ import java.util.Date;
 public class User implements Serializable {
 	private static final long serialVersionUID = -922456766390260044L;
 	private String id;
-	private String userName;
+	private String userid;
+	public String getUserid() {
+		return userid;
+	}
+	public void setUserid(String userid) {
+		this.userid = userid;
+	}
 	private String password;
 	private String name;
 	private String gender;
-	private Date createTime;
-	private String createId;
+	private Date crTime;
+	private String crId;
 	private Date opTime;
 	private String opId;
-	private String state;
+	private String isdelete;
 	
 	public String getId() {
 		return id;
 	}
 	public void setId(String id) {
 		this.id = id;
-	}
-	public String getUserName() {
-		return userName;
-	}
-	public void setUserName(String userName) {
-		this.userName = userName;
 	}
 	public String getPassword() {
 		return password;
@@ -46,17 +46,17 @@ public class User implements Serializable {
 	public void setGender(String gender) {
 		this.gender = gender;
 	}
-	public Date getCreateTime() {
-		return createTime;
+	public Date getCrTime() {
+		return crTime;
 	}
-	public void setCreateTime(Date createTime) {
-		this.createTime = createTime;
+	public void setCrTime(Date crTime) {
+		this.crTime = crTime;
 	}
-	public String getCreateId() {
-		return createId;
+	public String getCrId() {
+		return crId;
 	}
-	public void setCreateId(String createId) {
-		this.createId = createId;
+	public void setCrId(String crId) {
+		this.crId = crId;
 	}
 	public Date getOpTime() {
 		return opTime;
@@ -70,11 +70,11 @@ public class User implements Serializable {
 	public void setOpId(String opId) {
 		this.opId = opId;
 	}
-	public String getState() {
-		return state;
+	public String getIsdelete() {
+		return isdelete;
 	}
-	public void setState(String state) {
-		this.state = state;
+	public void setIsdelete(String isdelete) {
+		this.isdelete = isdelete;
 	}
 	
 }

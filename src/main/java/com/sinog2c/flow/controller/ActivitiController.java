@@ -207,6 +207,15 @@ public class ActivitiController extends BaseController{
 		Result result = new Result(false, "部署流程失败！");
 		try {
 			Model modelData = repositoryService.getModel(modelId);
+			if(StringUtils.isEmpty(modelData.getKey())) {
+				result.setMessage("流程KEY不能为空，请编辑补充！请求失败");
+				return result;
+			}
+			if(StringUtils.isEmpty(modelData.getName())) {
+				result.setMessage("流程名称不能为空，请编辑补充！请求失败");
+				return result;
+			}
+			
 			byte[] bytes = repositoryService.getModelEditorSource(modelData.getId());
 			if(bytes == null) {
 				result.setMessage("模型数据为空，请先设计流程并成功保存，再进行发布。");

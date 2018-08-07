@@ -17,6 +17,7 @@ import org.activiti.engine.RepositoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.history.HistoricTaskInstance;
+import org.activiti.engine.impl.RepositoryServiceImpl;
 import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.activiti.engine.impl.pvm.PvmActivity;
 import org.activiti.engine.impl.pvm.PvmTransition;
@@ -33,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.alibaba.fastjson.JSON;
 import com.sinog2c.flow.util.Result;
 
 /**
@@ -80,7 +82,7 @@ public class FlowController {
 		Result result = new Result(false, "启动流程失败!");
 		int i = 1;
 		variableMap.put("v1", i);
-		variableMap.put("userId", "2222");
+		variableMap.put("userId", "3333");
 		if(StringUtils.isEmpty(processDefinitionKey)) {
 			result.setMessage("流程定义ID不能为空！");
 		}else {
@@ -112,7 +114,7 @@ public class FlowController {
 		}else {
 			try {
 				/**调用流程任务服务接口，根据个人userId查询个人任务 */
-				List tasksList = taskService.createTaskQuery().taskAssignee(userId).orderByTaskCreateTime().desc().list();
+				List<Task> tasksList = taskService.createTaskQuery().taskAssignee(userId).orderByTaskCreateTime().desc().list();
 				System.out.println(userId+"个人任务创建时间倒序："+tasksList.toString());
 				result.setObj(tasksList);
 				result.setMessage("获取个人任务列表成功");
@@ -163,6 +165,7 @@ public class FlowController {
 	 * userId				： 用户编号
 	 * taskId				： 任务编号
 	 */
+	@RequestMapping("/claimGroupTask")
 	public Result claimGroupTask(String userId,String taskId) {
 		Result result = new Result(false, "组任务接收失败!");
 		if(StringUtils.isEmpty(taskId)||StringUtils.isEmpty(userId)) {
@@ -200,6 +203,7 @@ public class FlowController {
 		if(variableMap == null) {
 			variableMap = new HashMap();
 		}
+		variableMap.put("pass", "0");
 		try {
 			taskService.complete(taskId, variableMap);
 			result.setMessage("提交成功！");
@@ -220,76 +224,82 @@ public class FlowController {
 	 */
 	@RequestMapping("/taskRollBack")
 	public Result taskRollBack(String taskId) {
-		Result result = new Result(false, "流程流转失败!");
-		if(StringUtils.isEmpty(taskId)) {
-			result.setMessage("任务ID不能为空！请求失败");
-			return result;
-		}
+		Result result = new Result(false, "流程流转失败!"); 
 		try {
-			/**根据任务编号取得当前任务*/  
-			HistoricTaskInstance currTask = historyService  
-			        .createHistoricTaskInstanceQuery().taskId(taskId)  
-			        .singleResult();
-			/**取得流程实例*/
-			ProcessInstance instance = runtimeService  
-			        .createProcessInstanceQuery()  
-			        .processInstanceId(currTask.getProcessInstanceId())  
-			        .singleResult();
-			if(instance == null) {
-				result.setMessage("当前流程已经结束！请求失败");
-				return result;
-			}
-			/**取得流程变量*/
-			Map<String, Object> variablesMap = instance.getProcessVariables();  
-			/** 取得流程定义  */
-			ProcessDefinitionEntity definition = (ProcessDefinitionEntity) (repositoryService.getProcessDefinition(currTask.getProcessDefinitionId()));  	
-			if (definition == null) {  
-				result.setMessage("流程定义未找到！请求失败");
-				return result; 
-			}
-			/** 取得上一步活动  */
-			ActivityImpl currActivity = ((ProcessDefinitionImpl) definition).findActivity(currTask.getTaskDefinitionKey());  
-			List<PvmTransition> nextTransitionList = currActivity.getIncomingTransitions(); 
-			/** 清除当前活动的出口  */
-			List<PvmTransition> oriPvmTransitionList = new ArrayList<PvmTransition>();  
-			List<PvmTransition> pvmTransitionList = currActivity  
-			        .getOutgoingTransitions();  
-			for (PvmTransition pvmTransition : pvmTransitionList) {  
-			    oriPvmTransitionList.add(pvmTransition);  
-			}  
-			pvmTransitionList.clear(); 
-			/** 建立新出口  */
-			List<TransitionImpl> newTransitions = new ArrayList<TransitionImpl>();  
-			for (PvmTransition nextTransition : nextTransitionList) {  
-			    PvmActivity nextActivity = nextTransition.getSource();  
-			    ActivityImpl nextActivityImpl = ((ProcessDefinitionImpl) definition)  
-			            .findActivity(nextActivity.getId());  
-			    TransitionImpl newTransition = currActivity  
-			            .createOutgoingTransition();  
-			    newTransition.setDestination(nextActivityImpl);  
-			    newTransitions.add(newTransition);  
-			}  
-			/** 完成任务  */
-			List<Task> tasks = taskService.createTaskQuery()  
-			        .processInstanceId(instance.getId())  
-			        .taskDefinitionKey(currTask.getTaskDefinitionKey()).list();  
-			for (Task task : tasks) {  
-			    taskService.complete(task.getId(), variablesMap);  
-			    historyService.deleteHistoricTaskInstance(task.getId());  
-			}  
-			/** 恢复方向  */
-			for (TransitionImpl transitionImpl : newTransitions) {  
-			    currActivity.getOutgoingTransitions().remove(transitionImpl);  
-			}  
-			for (PvmTransition pvmTransition : oriPvmTransitionList) {  
-			    pvmTransitionList.add(pvmTransition);  
-			}
-			result.setMessage("任务回退成功！");
-			result.setSuccess(true);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} 
+             Map<String, Object> variables;
+             // 取得当前任务.当前任务节点
+             HistoricTaskInstance currTask = historyService
+                     .createHistoricTaskInstanceQuery().taskId(taskId)
+                     .singleResult();
+             // 取得流程实例，流程实例
+             ProcessInstance instance = runtimeService
+                     .createProcessInstanceQuery()
+                     .processInstanceId(currTask.getProcessInstanceId())
+                     .singleResult();
+             if (instance == null) {
+            	 result.setMessage("出错啦！流程已经结束");
+                 return result;
+             }
+             variables = instance.getProcessVariables();
+             // 取得流程定义
+             ProcessDefinitionEntity definition = (ProcessDefinitionEntity) ((RepositoryServiceImpl) repositoryService)
+                     .getDeployedProcessDefinition(currTask
+                             .getProcessDefinitionId());
+             if (definition == null) {
+                 result.setMessage("出错啦！流程定义未找到");
+                 return result;
+             }
+             // 取得上一步活动
+             ActivityImpl currActivity = ((ProcessDefinitionImpl) definition)
+                     .findActivity(currTask.getTaskDefinitionKey());
+             
+             //也就是节点间的连线
+             List<PvmTransition> nextTransitionList = currActivity
+                     .getIncomingTransitions();
+             // 清除当前活动的出口
+             List<PvmTransition> oriPvmTransitionList = new ArrayList<PvmTransition>();
+             //新建一个节点连线关系集合
+             
+             List<PvmTransition> pvmTransitionList = currActivity
+                     .getOutgoingTransitions();
+             //
+             for (PvmTransition pvmTransition : pvmTransitionList) {
+                 oriPvmTransitionList.add(pvmTransition);
+             }
+             pvmTransitionList.clear();
+  
+             // 建立新出口
+             List<TransitionImpl> newTransitions = new ArrayList<TransitionImpl>();
+             for (PvmTransition nextTransition : nextTransitionList) {
+                 PvmActivity nextActivity = nextTransition.getSource();
+                 ActivityImpl nextActivityImpl = ((ProcessDefinitionImpl) definition)
+                         .findActivity(nextActivity.getId());
+                 TransitionImpl newTransition = currActivity
+                         .createOutgoingTransition();
+                 newTransition.setDestination(nextActivityImpl);
+                 newTransitions.add(newTransition);
+             }
+             // 完成任务
+             List<Task> tasks = taskService.createTaskQuery()
+                     .processInstanceId(instance.getId())
+                     .taskDefinitionKey(currTask.getTaskDefinitionKey()).list();
+             for (Task task : tasks) {
+                 taskService.complete(task.getId(), variables);
+                 historyService.deleteHistoricTaskInstance(task.getId());
+             }
+             // 恢复方向
+             for (TransitionImpl transitionImpl : newTransitions) {
+                 currActivity.getOutgoingTransitions().remove(transitionImpl);
+             }
+             for (PvmTransition pvmTransition : oriPvmTransitionList) {
+                 pvmTransitionList.add(pvmTransition);
+             }
+             result.setMessage("回退成功");
+             result.setSuccess(true);
+         } catch (Exception e) {
+        	 result.setMessage("回退失败");
+             result.setSuccess(true);
+         }
 		return result;
 	}
 	

@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.sinog2c.flow.FlowApplication;
 import com.sinog2c.flow.domain.User;
 import com.sinog2c.flow.service.UserService;
 import com.sinog2c.flow.util.Result;
@@ -28,6 +30,8 @@ import com.sinog2c.flow.util.Util;
 @RequestMapping("/user")
 public class UserController extends BaseController {
 	
+	private static final Logger logger = Logger.getLogger(UserController.class);
+	
 	@Autowired
 	private UserService userService;
 	/**
@@ -38,29 +42,32 @@ public class UserController extends BaseController {
 	@PostMapping(value = "/login")
 	public String login(HttpServletRequest request) {
 		String view = "login";
-		String username = request.getParameter("username");
+		String userid = request.getParameter("userid");
 		String password = request.getParameter("password");
-		if(StringUtils.isEmpty(username)) {
+		if(StringUtils.isEmpty(userid)) {
 			request.setAttribute("message", "请输入用户名！");
+			logger.info("流程系统登录：用户名为空");
 		}else if(StringUtils.isEmpty(password)) {
 			request.setAttribute("message", "请输入密码！");
+			logger.info("流程系统登录：密码为空");
 		}else {
 			Map<String, Object> map = new HashMap<String, Object>();
-			map.put("username", username);
-			map.put("state", "1");
+			map.put("userid", userid);
+			map.put("isdelete", "0");
 			User user = userService.selectUserById(map);
 			if(user == null) {
 				request.setAttribute("message", "该户名不存在");
+				logger.info("流程系统登录：该用户名不存在");
 			} else {
 				//验证密码
-				if(user.getPassword().equals(Util.getPassword(username, password))) {
+				if(user.getPassword().equals(Util.getPassword(userid, password))) {
 					//登录成功，创建session
 					setSessionAttribute(request, SESSION_USER_KEY, user);
 					//跳转页面
 					view = "redirect:home";
 				} else {
-					request.setAttribute("message", "户名名或密码错误");
-					request.setAttribute("username", username);
+					request.setAttribute("message", "用户名或密码错误");
+					request.setAttribute("userid", userid);
 				}
 			}
 		}
@@ -124,8 +131,8 @@ public class UserController extends BaseController {
 		User user = getLoginUser(request);
 		if(user != null) {
 			Map<String, Object> map = new HashMap<String, Object>();
-			map.put("username", user.getUserName());
-			map.put("state", "1");
+			map.put("userid", user.getUserid());
+			map.put("isdelete", "0");
 			user = userService.selectUserById(map);
 			result.setSuccess(true);
 			result.setMessage("获取用户信息成功");
@@ -146,16 +153,16 @@ public class UserController extends BaseController {
 		String newPassword = request.getParameter("newPassword");
 		if(StringUtils.isNotEmpty(newPassword)) {
 			Map<String, Object> map = new HashMap<String, Object>();
-			map.put("username", user.getUserName());
-			map.put("state", "1");
+			map.put("userid", user.getUserid());
+			map.put("isdelete", "0");
 			User u = userService.selectUserById(map);
-			String password = Util.getPassword(u.getUserName(), user.getPassword());
+			String password = Util.getPassword(u.getUserid(), user.getPassword());
 			if(u != null && u.getPassword().equals(password)) {
 				user.setId(u.getId());
-				user.setPassword(Util.getPassword(u.getUserName(), newPassword));
+				user.setPassword(Util.getPassword(u.getUserid(), newPassword));
 			}
 		} 
-		user.setOpId(user.getUserName());
+		user.setOpId(user.getUserid());
 		user.setOpTime(new Date());
 		userService.updateUser(user);
 		//销毁session
