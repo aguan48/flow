@@ -94,6 +94,7 @@ public class FlowController {
 				result.setSuccess(true);
 			} catch (Exception e) {
 				e.printStackTrace();
+				logger.error(e.toString());
 			}
 		}
 		return result;

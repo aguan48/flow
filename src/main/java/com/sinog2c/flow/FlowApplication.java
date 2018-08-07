@@ -23,7 +23,7 @@ public class FlowApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(FlowApplication.class, args);
-		logger.info(" flow-service --> service start message: flow-服务提供者启动成功... ");
+		logger.info(" service start message: 【gk-flow】服务启动成功... ");
 	}
 	
 	//整合activiti所需要的filter
@@ -31,5 +31,5 @@ public class FlowApplication {
     public JsonpCallbackFilter filter(){
         return new JsonpCallbackFilter();
     }
-
+    
 }

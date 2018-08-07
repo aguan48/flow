@@ -28,6 +28,7 @@ import org.activiti.engine.repository.ModelQuery;
 import org.activiti.engine.repository.ProcessDefinitionQuery;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,6 +42,7 @@ import org.springframework.web.servlet.ModelAndView;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.sinog2c.flow.FlowApplication;
 import com.sinog2c.flow.domain.HistoricActivityInstanceResponse;
 import com.sinog2c.flow.domain.HistoricProcessInstanceResponse;
 import com.sinog2c.flow.domain.HistoricTaskInstanceResponse;
@@ -58,7 +60,9 @@ import com.sinog2c.flow.util.Result;
 @RestController
 @RequestMapping("/activiti")
 public class ActivitiController extends BaseController{
-
+	
+	private static final Logger logger = Logger.getLogger(ActivitiController.class);
+	
 	@Autowired
 	private RepositoryService repositoryService;
 	@Autowired
@@ -91,7 +95,7 @@ public class ActivitiController extends BaseController{
 				}
 			}
 		} catch (Exception e) {
-			
+			logger.error(e.getMessage());
 		}
 		
 	}
@@ -125,7 +129,7 @@ public class ActivitiController extends BaseController{
 			json.setSuccess(true);
 			json.setMessage("获取模型列表成功!");
 		} catch (Exception e) {
-
+			logger.error(e.getMessage());
 		}
 		return json;
 	}
@@ -151,6 +155,7 @@ public class ActivitiController extends BaseController{
 			result.setMessage("删除成功!");
 		} catch (Exception e) {
 			// TODO: handle exception
+			logger.error(e.getMessage());
 		}
 		return result;
 	}
@@ -191,6 +196,7 @@ public class ActivitiController extends BaseController{
 			json.setMessage("创建模型成功！！");
 			json.setObj(modelData.getId());
 		} catch (Exception e) {
+			logger.error(e.getMessage());
 			System.out.println("创建模型失败");
 			json.setSuccess(false);
 			json.setMessage("创建模型失败！");
@@ -236,6 +242,7 @@ public class ActivitiController extends BaseController{
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			logger.error(e.getMessage());
 		}
 		return result;
 	}
@@ -274,6 +281,7 @@ public class ActivitiController extends BaseController{
 			}
 			out.write("未找到对应数据");
 			e.printStackTrace();
+			logger.error(e.getMessage());
 		}
 	}
 
@@ -305,6 +313,7 @@ public class ActivitiController extends BaseController{
 			}
 			
 		} catch (Exception e){
+			logger.error(e.getMessage());
 			PrintWriter out = null;
 			try {
 				out = response.getWriter();
@@ -345,7 +354,7 @@ public class ActivitiController extends BaseController{
 			json.setSuccess(true);
 			json.setMessage("获取流程定义列表成功!");
 		} catch (Exception e) {
-
+			logger.error("[查询流程定义列表]"+e.getMessage());
 		}
 		return json;
 	}
@@ -370,6 +379,7 @@ public class ActivitiController extends BaseController{
 			result.setSuccess(true);
 			result.setMessage("删除成功!");
 		} catch (Exception e) {
+			logger.error("[删除已部署但未执行的流程]"+e.getMessage());
 			result.setMessage("删除失败！【注意：】已流转流程不允许删除");
 		}
 		return result;
@@ -394,6 +404,7 @@ public class ActivitiController extends BaseController{
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			logger.error(e.getMessage());
 		}
 		return result;
 	}
@@ -464,7 +475,7 @@ public class ActivitiController extends BaseController{
 			json.setSuccess(true);
 			json.setMessage("获取模型列表成功!");
 		} catch (Exception e) {
-
+			logger.error(e.getMessage());
 		}
 		return json;
 	}
@@ -491,7 +502,7 @@ public class ActivitiController extends BaseController{
 			json.setSuccess(true);
 			json.setMessage("获取模型列表成功!");
 		} catch (Exception e) {
-
+			logger.error(e.getMessage());
 		}
 		return json;
 	}
@@ -518,7 +529,7 @@ public class ActivitiController extends BaseController{
 			json.setSuccess(true);
 			json.setMessage("获取模型列表成功!");
 		} catch (Exception e) {
-
+			logger.error(e.getMessage());
 		}
 		return json;
 	}
@@ -545,7 +556,7 @@ public class ActivitiController extends BaseController{
 			json.setSuccess(true);
 			json.setMessage("获取模型列表成功!");
 		} catch (Exception e) {
-
+			logger.error(e.getMessage());
 		}
 		return json;
 	}
@@ -553,7 +564,6 @@ public class ActivitiController extends BaseController{
 	//处理列表请求传递数据
 	public Map<String,Object> dealQueryListParam(HttpServletRequest request){
 		Map<String, Object> param = new HashMap<String, Object>();
-		
 		Integer limit = request.getParameter("limit") == null ? 20 : Integer.parseInt(request.getParameter("limit"));
 		Integer offset = request.getParameter("offset") == null ? 0 : Integer.parseInt(request.getParameter("offset"));
 		String sort = request.getParameter("sort") == null ? "" : request.getParameter("sort"); //排序字段
@@ -564,7 +574,6 @@ public class ActivitiController extends BaseController{
 		param.put("sort", sort);
 		param.put("order", order);
 		param.put("search", search);
-		
 		return param;
 	}
 	

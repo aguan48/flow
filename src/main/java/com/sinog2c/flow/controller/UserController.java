@@ -151,17 +151,29 @@ public class UserController extends BaseController {
 	public Result editUser(User user, HttpServletRequest request) {
 		Result result = new Result(false, "修改用户信息失败");
 		String newPassword = request.getParameter("newPassword");
+		
+		//如果新密码不为空，处理新密码
 		if(StringUtils.isNotEmpty(newPassword)) {
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put("userid", user.getUserid());
 			map.put("isdelete", "0");
 			User u = userService.selectUserById(map);
+			//处理前台传递旧密码加密
 			String password = Util.getPassword(u.getUserid(), user.getPassword());
+			//比对数据库中查出的密码和前台处理过的密码
 			if(u != null && u.getPassword().equals(password)) {
 				user.setId(u.getId());
 				user.setPassword(Util.getPassword(u.getUserid(), newPassword));
+			}else {
+				//请求失败，原密码填写有误
+				result.setSuccess(false);
+				result.setMessage("原始密码有误");
+				return result;
 			}
-		} 
+		}else {
+			user.setPassword(null);
+		}
+		
 		user.setOpId(user.getUserid());
 		user.setOpTime(new Date());
 		userService.updateUser(user);
