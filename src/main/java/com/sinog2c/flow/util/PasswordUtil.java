@@ -3,7 +3,7 @@ package com.sinog2c.flow.util;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class Util {
+public class PasswordUtil {
 	
 	/**
 	 * md5加密
