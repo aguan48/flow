@@ -12,7 +12,7 @@ import com.sinog2c.flow.config.JsonpCallbackFilter;
 
 @SpringBootApplication
 @EnableEurekaClient
-@EnableTransactionManagement
+@EnableTransactionManagement//事物
 @EnableAutoConfiguration(exclude = {
         org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration.class,
         org.activiti.spring.boot.SecurityAutoConfiguration.class
@@ -23,7 +23,9 @@ public class FlowApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(FlowApplication.class, args);
-		logger.info(" service start message: 【gk-flow】服务启动成功... ");
+		logger.info("=======================================================================");
+		logger.info(" gk-flow --> service start message: flow-流程服务提供者启动成功... ");
+		logger.info("=======================================================================");
 	}
 	
 	//整合activiti所需要的filter

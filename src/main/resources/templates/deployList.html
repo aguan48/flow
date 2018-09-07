@@ -122,7 +122,7 @@
 			                },
 			                {
 			                  field : 'key',
-			                  title : 'key',
+			                  title : '流程定义Key',
 			                  align : 'center' 
 			                }, 
 			                { 
@@ -133,6 +133,11 @@
 		               		{ 
 			                  field : 'decription', 
 			                  title : '描述', 
+			                  align : 'center' 
+			                },
+			                { 
+			                  field : 'tenantId', 
+			                  title : '所属系统', 
 			                  align : 'center' 
 			                },
 			                { 
@@ -147,7 +152,7 @@
 			                    return d + e; 
 			                  } 
 			  
-			             }] 
+			             	}] 
 		        });
 		    };
 		    return oTableInit; 
@@ -206,6 +211,8 @@
 			var content = "<form id='import_form' method='POST'  enctype='multipart/form-data'><table><tr>"+
 				"<td align='right'>部署名称：</td><td><input style='width:290px;' name='import_name' id='import_name' /></td><td class='td-red'>*</td>"+
 				"</tr><tr>"+
+				"<td align='right'>系统编号：</td><td><input style='width:290px;' name='tenantId' id='tenantId' /></td><td class='td-red'>*</td>"+
+				"</tr><tr>"+
 				"<td align='right'>XML文件：</td><td><input style='width:290px; padding: 0; border: 0;' type='file' name='import_filepath' id='import_filepath' /></td><td class='td-red'>*</td>"+
 				"</tr><tr>"+
 				"<td colspan='3' style='color:red;'>【注意】</td>"+
@@ -220,7 +227,7 @@
 				type: "showSweetAlert",
 				close: "true",
 				title: "导入部署流程",
-				area:["460px","360px"],
+				area:["460px","380px"],
 				content: content,
 				btn:["取消","导入"],
 				callBack1:function(){
@@ -238,8 +245,13 @@
 			//验证
 			var import_name = $("#import_name").val();
 			var import_filepath = $("#import_filepath").val();
+			var tenantId = $("#tenantId").val();
 			if(!import_name){
 				alert("请输入添加部署的名称！");
+				return;
+			}
+			if(!tenantId){
+				alert("请输入系统编号！");
 				return;
 			}
 			if(!import_filepath){

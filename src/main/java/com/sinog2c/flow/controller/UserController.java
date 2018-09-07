@@ -20,7 +20,7 @@ import com.sinog2c.flow.FlowApplication;
 import com.sinog2c.flow.domain.User;
 import com.sinog2c.flow.service.UserService;
 import com.sinog2c.flow.util.Result;
-import com.sinog2c.flow.util.Util;
+import com.sinog2c.flow.util.PasswordUtil;
 /**
  * 用户控制层
  * @author 许杰
@@ -60,7 +60,7 @@ public class UserController extends BaseController {
 				logger.info("流程系统登录：该用户名不存在");
 			} else {
 				//验证密码
-				if(user.getPassword().equals(Util.getPassword(userid, password))) {
+				if(user.getPassword().equals(PasswordUtil.getPassword(userid, password))) {
 					//登录成功，创建session
 					setSessionAttribute(request, SESSION_USER_KEY, user);
 					//跳转页面
@@ -159,11 +159,11 @@ public class UserController extends BaseController {
 			map.put("isdelete", "0");
 			User u = userService.selectUserById(map);
 			//处理前台传递旧密码加密
-			String password = Util.getPassword(u.getUserid(), user.getPassword());
+			String password = PasswordUtil.getPassword(u.getUserid(), user.getPassword());
 			//比对数据库中查出的密码和前台处理过的密码
 			if(u != null && u.getPassword().equals(password)) {
 				user.setId(u.getId());
-				user.setPassword(Util.getPassword(u.getUserid(), newPassword));
+				user.setPassword(PasswordUtil.getPassword(u.getUserid(), newPassword));
 			}else {
 				//请求失败，原密码填写有误
 				result.setSuccess(false);

@@ -1,11 +1,21 @@
 package com.sinog2c.flow.config;
 
+import javax.sql.DataSource;
+
+import org.activiti.engine.FormService;
+import org.activiti.engine.HistoryService;
+import org.activiti.engine.ManagementService;
+import org.activiti.engine.ProcessEngine;
+import org.activiti.engine.RepositoryService;
+import org.activiti.engine.RuntimeService;
+import org.activiti.engine.TaskService;
 import org.activiti.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.activiti.spring.SpringProcessEngineConfiguration;
 import org.activiti.spring.boot.ProcessEngineConfigurationConfigurer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.PlatformTransactionManager;
 
 /**
  * Activiti 配置类
@@ -21,6 +31,12 @@ public class ActivitiConfig implements ProcessEngineConfigurationConfigurer{
 	@Autowired(required=true)
 	private IDGenerator idGenerator;
 	
+	@Autowired
+    private PlatformTransactionManager transactionManager;
+	
+	@Autowired
+    private DataSource druidDataSource;
+	
 	//自定义流程引擎主键生成策略
 	@Bean
 	public ProcessEngineConfigurationImpl processEngineConfigurationImpl(ProcessEngineConfigurationImpl processEngineConfigurationImpl){
@@ -31,13 +47,52 @@ public class ActivitiConfig implements ProcessEngineConfigurationConfigurer{
 		return processEngineConfigurationImpl;
 	}
 	
-	//流程图显示字体设置（乱码问题）
+	//配置
 	@Override
 	public void configure(SpringProcessEngineConfiguration processEngineConfiguration) {
 		// TODO Auto-generated method stub
+		// 流程图显示字体设置（乱码问题）
 		processEngineConfiguration.setActivityFontName("宋体");
 		processEngineConfiguration.setLabelFontName("宋体");
 		processEngineConfiguration.setAnnotationFontName("宋体");
+		// 数据源设置
+		processEngineConfiguration.setDataSource(druidDataSource);
+		processEngineConfiguration.setDatabaseType("mysql");
+		processEngineConfiguration.setDatabaseSchemaUpdate("true");
+		// 事物控制
+		processEngineConfiguration.setTransactionManager(transactionManager);
 	}
+	
+	
+	@Bean
+    public RepositoryService repositoryService(ProcessEngine processEngine) {
+        return processEngine.getRepositoryService();
+    }
+ 
+    @Bean
+    public RuntimeService runtimeService(ProcessEngine processEngine) {
+        return processEngine.getRuntimeService();
+    }
+ 
+    @Bean
+    public TaskService taskService(ProcessEngine processEngine) {
+        return processEngine.getTaskService();
+    }
+ 
+    @Bean
+    public HistoryService historyService(ProcessEngine processEngine) {
+        return processEngine.getHistoryService();
+    }
+ 
+    @Bean
+    public ManagementService managementService(ProcessEngine processEngine) {
+        return processEngine.getManagementService();
+    }
+ 
+    @Bean
+    public FormService formService(ProcessEngine processEngine) {
+        return processEngine.getFormService();
+    }
+	
 	
 }

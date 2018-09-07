@@ -25,7 +25,7 @@ public interface CommonFlowQueryListService {
 	
 	List<HistoricProcessInstanceResponse> queryHistoricProcessInstance(HistoricProcessInstanceQuery query,Map<String,Object> param);
 	
-	List<HistoricActivityInstanceResponse> queryHistoricActivityInstance(HistoricActivityInstanceQuery query,Map<String,Object> param);
+	List<Map<String,Object>> queryHistoricActivityInstance(HistoricActivityInstanceQuery query,Map<String,Object> param);
 	
 	List<HistoricTaskInstanceResponse> queryHistoricTaskInstance(HistoricTaskInstanceQuery query,Map<String,Object> param);
 	

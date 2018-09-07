@@ -62,7 +62,7 @@
 		            sidePagination: "server",// 分页方式：client客户端分页，server服务端分页（*）
 		            clickToSelect: true,// 是否启用点击选中行
 		            uniqueId: "id", // 每一行的唯一标识，一般为主键列
-		         	pageSize: 10,// 每页的记录行数（*）
+		         	pageSize: 20,// 每页的记录行数（*）
 					pageNumber: 1,// 初始化加载第一页，默认第一页
 					smartDisplay: false,
 					pageList: [10, 20, 50, 100, "All"],// 可供选择的每页的行数（*）
@@ -112,8 +112,8 @@
 			                  align : 'center' 
 			                }, 
 			                { 
-			                  field : 'deploymentId', 
-			                  title : '发布ID', 
+			                  field : 'bussinessKey', 
+			                  title : '业务主键', 
 			                  align : 'center' 
 				            },
 		               		{ 
@@ -131,10 +131,26 @@
 			                  	  if(value){
 			                  		return changeDateFormat(value);
 			                  	  }else{
-			                  		return "-";
+			                  		return "办理中...";
 			                  	  }
 			                  }
-			                }
+			                }, 
+			                { 
+			                  field : 'tenantId', 
+			                  title : '所属系统', 
+			                  align : 'center' 
+				            },
+			                { 
+			                  title : '操作', 
+			                  field : 'id', 
+			                  align : 'center', 
+			                  formatter : function(value, row, index) { 
+		                        var e = '<a href="#" mce_href="#" onclick="preView(\'' 
+			                        + row.id + '\',\''+row.endTime+'\')">预览</a>&nbsp;&nbsp; ';
+			                    return e; 
+			                  } 
+			  
+			             	}
 				            
 				            ] 
 		        });
@@ -147,6 +163,28 @@
 			var date = new Date(cellval);  
 		    date_value=date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate() + ' ' + date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
 		    return date_value;
+		}
+		
+		//预览流程图
+		function preView(id,endTime) {
+			
+			var content = "流程已结束！";
+			if(!endTime || endTime == null || endTime == "null" || endTime == "" || endTime == undefined ){
+				var url = "${path}/flowService/genProcessDiagramPic?processInstanceId="+id;
+				content = '<img src="'+url+'" style="margin: 0 auto;width:auto;  max-width:100%; height:350px;"/>';
+			}else{
+				alert(content);
+				return;
+			}
+			
+			var obj={
+				type: "showSweetAlert",
+				close: "true",
+				title: "流程流转",
+				area:["1000px","500px"],//宽、高
+				content: content
+			};
+			method.msg_layer(obj);
 		}
 	</script>
 </body>

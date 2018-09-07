@@ -31,6 +31,10 @@ public class HistoricActivityInstanceResponse {
 	@JsonSerialize(using = DateToStringSerializer.class, as=Date.class)
 	private Date endTime;
 	private long durationInMillis;
+	private String tenantId;
+	private String activityType;
+	private Date Time;
+	
 	
 	public HistoricActivityInstanceResponse(HistoricActivityInstance historicActivityInstance) {
 		setId(historicActivityInstance.getId() == null ? "":historicActivityInstance.getId());
@@ -51,10 +55,31 @@ public class HistoricActivityInstanceResponse {
 		if(historicActivityInstance.getDurationInMillis() != null) {
 			setDurationInMillis(historicActivityInstance.getDurationInMillis());
 		}
-		
-		
-		
+		setTenantId(historicActivityInstance.getTenantId());
+		setActivityId(historicActivityInstance.getActivityType());
+		setTime(historicActivityInstance.getTime());
 	}
+
+
+	public Date getTime() {
+		return Time;
+	}
+
+
+	public void setTime(Date time) {
+		Time = time;
+	}
+
+
+	public String getActivityType() {
+		return activityType;
+	}
+
+
+	public void setActivityType(String activityType) {
+		this.activityType = activityType;
+	}
+
 
 	public String getId() {
 		return id;
@@ -150,6 +175,14 @@ public class HistoricActivityInstanceResponse {
 
 	public void setDurationInMillis(long durationInMillis) {
 		this.durationInMillis = durationInMillis;
+	}
+	
+	public String getTenantId() {
+		return tenantId;
+	}
+
+	public void setTenantId(String tenantId) {
+		this.tenantId = tenantId;
 	}
 
 	

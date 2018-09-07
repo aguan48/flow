@@ -54,7 +54,9 @@ spring:
 # activiti 配置
   activiti: 
     check-process-definitions: false
-    db-identity-used: false
+    db-identity-used: false #设置数据库验证
+    history-level: full #设置流程引擎历史记录级别
+    
 # mybatis 路径映射
 mybatis:
   mapper-locations: classpath:mapper/**/*.xml
@@ -62,4 +64,4 @@ mybatis:
   config-location: classpath:mybatis-config.xml
 
 #不拦截的url
-excludeList: /user/login,/user/logout,/error,/flow
+excludeList: /user/login,/user/logout,/error,/flowService,/test/testTransactional

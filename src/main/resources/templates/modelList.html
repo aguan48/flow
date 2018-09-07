@@ -153,7 +153,7 @@
 			                        + row.id + '\')">编辑</a>&nbsp;&nbsp; '; 
 			                    var d = '<a href="#" mce_href="#" onclick="del(\'' 
 			                        + row.id + '\')">删除</a>&nbsp;&nbsp; '; 
-		                        var f = '<a href="#" mce_href="#" onclick="deploy(\'' 
+		                        var f = '<a href="#" mce_href="#" onclick="addSystemTenantId(\'' 
 			                        + row.id + '\')">发布</a>&nbsp;&nbsp;';
 		                        var g = '<a href="#" mce_href="#" onclick="exportToXML(\'' 
 			                        + row.id + '\')">导出</a>';
@@ -307,31 +307,60 @@
 			}
 		} 
 		
-		//发布部署
-		function deploy(id){
+		//补充发布后流程所属系统
+		function addSystemTenantId(id){
 			if(id){
-				confirm("确定要部署选中记录吗？", function(rusult){
-					if(rusult){
-						$.ajax({
-							url: "${path}/activiti/deploy",
-							data: {modelId: id},
-							type: "post",
-							dataType: "json",
-							success: function (data) {
-								alert(data.message);
-							},
-							error: function (jqXHR, textStatus, errorThrown) {
-								alert("操作失败!");
-							}
-						});
+				var content = "<form id='import_form' method='POST'  enctype='multipart/form-data'><table><tr>"+
+				"<td align='right'>所属系统：</td><td><input style='width:290px;' name='tenantId' id='tenantId' /></td><td class='td-red'>*</td>"+
+				"</tr><tr>"+
+				"<td colspan='3' style='color:red;'>&nbsp;&nbsp;&nbsp;&nbsp;*所属系统代码必填！</td>"+
+				"</tr></table></form>";
+				var obj={
+					type: "showSweetAlert",
+					close: "true",
+					title: "绑定系统",
+					area:["460px","220px"],
+					content: content,
+					btn:["取消","导入"],
+					callBack1:function(){
+						method.msg_close();	            	
+					},
+					callBack2:function(){
+						
+						var tenantId = $("#tenantId").val();
+						if(!tenantId){
+							alert("请输入系统代码！");
+							return;
+						}
+						deploy(id,tenantId);
 					}
-				})
+				};
+				method.msg_layer(obj);
 			}else{
 				alert("至少选择一条记录!");
 			}
 		}
 		
-		//调用后台发布部署方法
+		//发布部署
+		function deploy(id,tenantId){
+			method.msg_close();
+			confirm("确定要部署选中记录吗？", function(rusult){
+				if(rusult){
+					$.ajax({
+						url: "${path}/activiti/deploy",
+						data: {modelId: id , tenantId: tenantId},
+						type: "post",
+						dataType: "json",
+						success: function (data) {
+							alert(data.message);
+						},
+						error: function (jqXHR, textStatus, errorThrown) {
+							alert("操作失败!");
+						}
+					});
+				}
+			})
+		}
 		
 		
 		//导出

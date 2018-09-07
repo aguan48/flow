@@ -66,4 +66,16 @@
 		WHERE userid = #{userid, jdbcType=VARCHAR}
 	</update>
 	
+	<select id="selectGroupIdsByUserIdAndTenantId" parameterType="Map" resultType="Map">
+			select 
+				tr.id groupId
+			from 
+				tbsys_users_roles tur , 
+				tbsys_roleinfo tr 
+			where 
+				tur.userid = #{userId} 
+				and tur.roleid=tr.id 
+				and tr.assosystem = #{tenantId}
+		</select>
+	
 </mapper>

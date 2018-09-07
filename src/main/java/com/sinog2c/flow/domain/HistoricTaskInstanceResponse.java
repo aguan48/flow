@@ -30,8 +30,10 @@ public class HistoricTaskInstanceResponse {
 	private long workTimeInMillis;
 	@JsonSerialize(using = DateToStringSerializer.class, as=Date.class)
 	private Date claimTime;
+	private String tenantId;
 	
 	
+
 	public HistoricTaskInstanceResponse(HistoricTaskInstance historicTaskInstance) {
 		setDeleteReason(historicTaskInstance.getDeleteReason() == null ? "":historicTaskInstance.getDeleteReason());
 		if(historicTaskInstance.getStartTime() != null) {
@@ -54,6 +56,7 @@ public class HistoricTaskInstanceResponse {
 		setProcessDefinitionId(historicTaskInstance.getProcessDefinitionId());
 		setProcessInstanceId(historicTaskInstance.getProcessInstanceId());
 		setId(historicTaskInstance.getId());
+		setTenantId(historicTaskInstance.getTenantId());
 	}
 	
 	
@@ -152,7 +155,17 @@ public class HistoricTaskInstanceResponse {
 		this.excutionId = excutionId;
 	}
 	
-	
+	public String getTenantId() {
+		return tenantId;
+	}
+
+
+
+	public void setTenantId(String tenantId) {
+		this.tenantId = tenantId;
+	}
+
+
 	
 	
 	

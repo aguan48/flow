@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.activiti.bpmn.converter.BpmnXMLConverter;
 import org.activiti.bpmn.model.BpmnModel;
+import org.activiti.bpmn.model.UserTask;
 import org.activiti.editor.constants.ModelDataJsonConstants;
 import org.activiti.editor.language.json.converter.BpmnJsonConverter;
 import org.activiti.engine.HistoryService;
@@ -42,7 +43,9 @@ import org.springframework.web.servlet.ModelAndView;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.sinog2c.flow.FlowApplication;
+import com.sinog2c.flow.act.ActivitiUtil;
+import com.sinog2c.flow.act.CustomBpmnJsonConverter;
+import com.sinog2c.flow.act.CustomUserTaskJsonConverter;
 import com.sinog2c.flow.domain.HistoricActivityInstanceResponse;
 import com.sinog2c.flow.domain.HistoricProcessInstanceResponse;
 import com.sinog2c.flow.domain.HistoricTaskInstanceResponse;
@@ -209,8 +212,14 @@ public class ActivitiController extends BaseController{
 	 */
 	@PostMapping(value = "/deploy")
 	@ResponseBody
-	public Result deploy(@RequestParam("modelId") String modelId, HttpServletRequest request) {
+	public Result deploy(@RequestParam("modelId") String modelId, 
+			@RequestParam("tenantId") String tenantId, 
+			HttpServletRequest request) {
 		Result result = new Result(false, "部署流程失败！");
+		if(StringUtils.isEmpty(tenantId)) {
+			result.setMessage("tenantId系统编号不能为空！！！");
+			return result;
+		}
 		try {
 			Model modelData = repositoryService.getModel(modelId);
 			if(StringUtils.isEmpty(modelData.getKey())) {
@@ -228,13 +237,19 @@ public class ActivitiController extends BaseController{
 			}else {
 				ObjectNode modelNode = (ObjectNode) new ObjectMapper().readTree(bytes);
 				byte[] bpmnBytes = null;
-				BpmnModel model = new BpmnJsonConverter().convertToBpmnModel(modelNode);
+				
+				// TODO:UserTask自定义扩展属性
+				CustomBpmnJsonConverter.getConvertersToBpmnMap().put("UserTask", CustomUserTaskJsonConverter.class);
+				CustomBpmnJsonConverter.getConvertersToJsonMap().put(UserTask.class, CustomUserTaskJsonConverter.class);
+				BpmnJsonConverter jsonConverter = new BpmnJsonConverter();
+				
+				BpmnModel model = jsonConverter.convertToBpmnModel(modelNode);
 				if(model.getProcesses().size()==0){
 		            result.setMessage("数据模型不符要求，请至少设计一条主线流程。");
 		        }else {
 		        	bpmnBytes = new BpmnXMLConverter().convertToXML(model);
 					String processName = modelData.getName() + ".bpmn20.xml";
-					Deployment deployment = repositoryService.createDeployment().name(modelData.getName()).addString(processName, new String(bpmnBytes,"utf-8")).deploy();
+					Deployment deployment = repositoryService.createDeployment().tenantId(tenantId).name(modelData.getName()).addString(processName, new String(bpmnBytes,"utf-8")).deploy();
 					result.setSuccess(true);
 					result.setObj(deployment.getId());
 					result.setMessage("部署流程成功！");
@@ -258,7 +273,12 @@ public class ActivitiController extends BaseController{
 		response.setContentType("application/json; charset=utf-8");  
 		try {
 			Model modelData = repositoryService.getModel(modelId);
+			
+			// TODO:UserTask自定义扩展属性
 			BpmnJsonConverter jsonConverter = new BpmnJsonConverter();
+			CustomBpmnJsonConverter.getConvertersToBpmnMap().put("UserTask", CustomUserTaskJsonConverter.class);
+			CustomBpmnJsonConverter.getConvertersToJsonMap().put(UserTask.class, CustomUserTaskJsonConverter.class);
+			
 			//获取节点信息
 			byte[] arg0 = repositoryService.getModelEditorSource(modelData.getId());
 			JsonNode editorNode = new ObjectMapper().readTree(arg0);
@@ -393,12 +413,17 @@ public class ActivitiController extends BaseController{
 	public Result deploymentByXML(@RequestParam("import_filepath") MultipartFile import_filepath,
 			@RequestParam("import_name") String import_name,
 			@RequestParam("filename") String filename,
-			HttpServletRequest request) { 
+			@RequestParam("tenantId") String tenantId,
+			HttpServletRequest request) {
 		Result result = new Result(false, "导入部署流程失败!");
+		if(StringUtils.isEmpty(tenantId)) {
+			result.setMessage("tenantId系统编号不能为空！！！");
+			return result;
+		}
 		try {
 			//获取上传文件
 			InputStream fileInputStream =  import_filepath.getInputStream();
-			repositoryService.createDeployment().name(import_name).addInputStream(filename, fileInputStream).deploy();
+			repositoryService.createDeployment().name(import_name).tenantId(tenantId).addInputStream(filename, fileInputStream).deploy();
 			result.setSuccess(true);
 			result.setMessage("导入部署成功");
 		} catch (Exception e) {
@@ -466,7 +491,7 @@ public class ActivitiController extends BaseController{
 	public DataJsonResult queryHistoricProcessInstance(HttpServletRequest request) {
 		DataJsonResult json = new DataJsonResult(false, "获取模型列表失败!");
 		try {
-			Map<String, Object> param = this.dealQueryListParam(request);
+			Map<String, Object> param = ActivitiUtil.dealQueryListParam(request);
 			HistoricProcessInstanceQuery query = historyService.createHistoricProcessInstanceQuery();
 			List<HistoricProcessInstanceResponse> resultList = commonFlowQueryListService.queryHistoricProcessInstance(query, param);
 			Long total = query.count();
@@ -493,9 +518,9 @@ public class ActivitiController extends BaseController{
 	public DataJsonResult queryHistoricActivityInstance(HttpServletRequest request) {
 		DataJsonResult json = new DataJsonResult(false, "获取模型列表失败!");
 		try {
-			Map<String, Object> param = this.dealQueryListParam(request);
+			Map<String, Object> param = ActivitiUtil.dealQueryListParam(request);
 			HistoricActivityInstanceQuery query = historyService.createHistoricActivityInstanceQuery();
-			List<HistoricActivityInstanceResponse> resultList = commonFlowQueryListService.queryHistoricActivityInstance(query, param);
+			List<Map<String,Object>> resultList = commonFlowQueryListService.queryHistoricActivityInstance(query, param);
 			Long total = query.count();
 			json.setRows(resultList);//数据
 			json.setTotal(total);//总记录数
@@ -520,7 +545,7 @@ public class ActivitiController extends BaseController{
 	public DataJsonResult queryHistoricTaskInstance(HttpServletRequest request) {
 		DataJsonResult json = new DataJsonResult(false, "获取模型列表失败!");
 		try {
-			Map<String, Object> param = this.dealQueryListParam(request);
+			Map<String, Object> param = ActivitiUtil.dealQueryListParam(request);
 			HistoricTaskInstanceQuery query = historyService.createHistoricTaskInstanceQuery();
 			List<HistoricTaskInstanceResponse> resultList = commonFlowQueryListService.queryHistoricTaskInstance(query, param);
 			Long total = query.count();
@@ -547,7 +572,7 @@ public class ActivitiController extends BaseController{
 	public DataJsonResult queryHistoricVariableInstance(HttpServletRequest request) {
 		DataJsonResult json = new DataJsonResult(false, "获取模型列表失败!");
 		try {
-			Map<String, Object> param = this.dealQueryListParam(request);
+			Map<String, Object> param = ActivitiUtil.dealQueryListParam(request);
 			HistoricVariableInstanceQuery query = historyService.createHistoricVariableInstanceQuery();
 			List<HistoricVariableInstanceResponse> resultList = commonFlowQueryListService.queryHistoricVariableInstance(query, param);
 			Long total = query.count();
@@ -559,22 +584,6 @@ public class ActivitiController extends BaseController{
 			logger.error(e.getMessage());
 		}
 		return json;
-	}
-	
-	//处理列表请求传递数据
-	public Map<String,Object> dealQueryListParam(HttpServletRequest request){
-		Map<String, Object> param = new HashMap<String, Object>();
-		Integer limit = request.getParameter("limit") == null ? 20 : Integer.parseInt(request.getParameter("limit"));
-		Integer offset = request.getParameter("offset") == null ? 0 : Integer.parseInt(request.getParameter("offset"));
-		String sort = request.getParameter("sort") == null ? "" : request.getParameter("sort"); //排序字段
-		String order = request.getParameter("order") == null ? "" : request.getParameter("order"); //排序方式
-		String search = request.getParameter("search") == null ? "" : request.getParameter("search"); //排序方式
-		param.put("offset", offset);
-		param.put("limit", limit);
-		param.put("sort", sort);
-		param.put("order", order);
-		param.put("search", search);
-		return param;
 	}
 	
 	

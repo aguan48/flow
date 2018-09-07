@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.activiti.engine.ProcessEngine;
 import org.activiti.engine.history.HistoricActivityInstance;
 import org.activiti.engine.history.HistoricActivityInstanceQuery;
 import org.activiti.engine.history.HistoricProcessInstance;
@@ -18,8 +19,10 @@ import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.repository.ProcessDefinitionQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.sinog2c.flow.act.ActivitiUtil;
 import com.sinog2c.flow.domain.HistoricActivityInstanceResponse;
 import com.sinog2c.flow.domain.HistoricProcessInstanceResponse;
 import com.sinog2c.flow.domain.HistoricTaskInstanceResponse;
@@ -28,12 +31,22 @@ import com.sinog2c.flow.domain.ProcessDefinitionResponse;
 import com.sinog2c.flow.service.CommonFlowQueryListService;
 
 /**
- * 流程相关列表查询
+ * 系统内部查询列表公共方法
+ * 
+* @ClassName:：CommonFlowQueryListServiceImpl 
+* @Description： TODO
+* @author ：gxx  
+* @date ：2018年9月6日 上午11:56:21 
+*
  */
 @Service("commonFlowQueryListService")
 public class CommonFlowQueryListServiceImpl implements CommonFlowQueryListService{
 	
 	private Logger logger = LoggerFactory.getLogger(CommonFlowQueryListServiceImpl.class);
+	
+	/** 注入流程引擎*/
+	@Autowired
+    private ProcessEngine processEngine;
 	
 	/**
 	 * 模型查询列表
@@ -192,7 +205,7 @@ public class CommonFlowQueryListServiceImpl implements CommonFlowQueryListServic
 	}
 
 	@Override
-	public List<HistoricActivityInstanceResponse> queryHistoricActivityInstance(HistoricActivityInstanceQuery query,
+	public List<Map<String,Object>> queryHistoricActivityInstance(HistoricActivityInstanceQuery query,
 			Map<String, Object> param) {
 		List<HistoricActivityInstance> historicActivityInstances = null;
 		String sort = param.get("sort").toString().toLowerCase();
@@ -210,18 +223,15 @@ public class CommonFlowQueryListServiceImpl implements CommonFlowQueryListServic
 				query = query.orderByHistoricActivityInstanceStartTime().desc();
 			}
 		}else {
-			query = query.orderByHistoricActivityInstanceStartTime().desc();
+			query = query.orderByHistoricActivityInstanceEndTime().asc();
 		}
 		
 		historicActivityInstances = query.listPage(Integer.parseInt(param.get("offset").toString()), 
 				Integer.parseInt(param.get("limit").toString()));
 		
-		List<HistoricActivityInstanceResponse> list = new ArrayList<>();
-		for(HistoricActivityInstance historicActivityInstance: historicActivityInstances){
-            list.add(new HistoricActivityInstanceResponse(historicActivityInstance));
-        }
+		List<Map<String,Object>> result = ActivitiUtil.parseListHistoricActivityInstance2ListMap(historicActivityInstances, processEngine);
 		
-		return list;
+		return result;
 	}
 
 	@Override
