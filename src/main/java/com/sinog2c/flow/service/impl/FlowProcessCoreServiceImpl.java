@@ -1,12 +1,19 @@
 package com.sinog2c.flow.service.impl;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
+import org.activiti.bpmn.model.BpmnModel;
+import org.activiti.bpmn.model.ExtensionElement;
+import org.activiti.bpmn.model.FlowElement;
 import org.activiti.engine.FormService;
 import org.activiti.engine.HistoryService;
+import org.activiti.engine.IdentityService;
 import org.activiti.engine.ProcessEngine;
 import org.activiti.engine.RepositoryService;
 import org.activiti.engine.RuntimeService;
@@ -15,6 +22,7 @@ import org.activiti.engine.history.HistoricActivityInstance;
 import org.activiti.engine.impl.RepositoryServiceImpl;
 import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.activiti.engine.impl.persistence.entity.TaskEntity;
+import org.activiti.engine.impl.pvm.PvmActivity;
 import org.activiti.engine.impl.pvm.PvmTransition;
 import org.activiti.engine.impl.pvm.process.ActivityImpl;
 import org.activiti.engine.impl.pvm.process.ProcessDefinitionImpl;
@@ -29,7 +37,12 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.sinog2c.flow.act.CustomStencilConstants;
+import com.sinog2c.flow.config.IDGenerator;
+import com.sinog2c.flow.domain.FlowProcInstRec;
+import com.sinog2c.flow.mapper.FlowProcInstRecMapper;
 import com.sinog2c.flow.service.FlowProcessCoreService;
+import com.sinog2c.flow.util.IdGen;
 import com.sinog2c.flow.util.JsonResult;
 
 /**
@@ -71,22 +84,38 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 	@Autowired
 	private FormService formService;
 	
+	@Autowired
+	private IDGenerator IDGenerator;
+	
+	@Autowired
+	private FlowProcInstRecMapper flowProcInstRecMapper;
+	
+	@Autowired
+	private IdentityService identityService;
+	
+	
+	
 	
 	
 	
 	/*********************************************************************************************************************************************
-	 * 启动一个流程
+	 * 启动一个或多个流程
 	 * 
 	 * @param processDefinitionKey		流程定义key
 	 * @param tenantId					系统ID
 	 * @param variables					流程变量
-	 * @param businessKey				业务主键
+	 * @param businessKeys				业务主键以英文逗号,分隔
 	 * @return
 	 ********************************************************************************************************************************************/
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED,isolation = Isolation.DEFAULT,timeout=36000,rollbackFor=Exception.class)
-	public JsonResult<String> startFlowProcess(String processDefinitionKey,String tenantId, Map<String, Object> variables,String businessKey) 
+	public JsonResult<String> startFlowProcess(String processDefinitionKey,
+			String tenantId, 
+			Map<String, Object> variables,
+			String businessKeys,
+			String userId) 
 			throws Exception{
+		
 		// TODO Auto-generated method stub
 		logger.info("======================开始启动一个流程：：：processDefinitionKey"+processDefinitionKey+"=====================");
 		if(StringUtils.isEmpty(processDefinitionKey)) {
@@ -96,30 +125,82 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 			logger.error("======================启动失败，系统tenantId不能为空：：：processDefinitionKey=====================");
 			return JsonResult.failMessage("系统tenantId不能为空！");
 		}else {
-			/**根据流程定义ID启动流程*/
-			ProcessInstance processInstance = runtimeService.startProcessInstanceByKeyAndTenantId(processDefinitionKey, businessKey, variables, tenantId);
-			String processInstanceId = processInstance.getId();
+			
+			
+			if(variables == null) {
+				variables = new HashMap<String,Object>();
+			}
+			
+			variables.put("startUserId", userId);
+			
+			String businessKeysC[] = businessKeys.split(",");
+			for (String businessKey : businessKeysC) {
+				// 设置发起人
+				identityService.setAuthenticatedUserId(userId);
+				
+				/**根据流程定义ID启动流程*/
+				ProcessInstance processInstance = runtimeService.startProcessInstanceByKeyAndTenantId(processDefinitionKey, businessKey, variables, tenantId);
+				String processInstanceId = processInstance.getId();
+				
+				/**启动成功，记录流程状态*/
+				FlowProcInstRec rec = new FlowProcInstRec();
+				rec.setId(String.valueOf(IdGen.get().next()));
+				rec.setProcessInstanceId(processInstanceId);
+				rec.setBusinessKey(businessKey);
+				rec.setFlowStatus("1");
+				rec.setPostilMessage("发起流程");
+				rec.setProcessDefinitionKey(processDefinitionKey);
+				rec.setUserId(userId);
+				rec.setOpTime(new Date());
+				rec.setStartUserId(userId);
+				rec.setSn("1");
+				rec.setTenantId(tenantId);
+				
+				// 当前节点可编辑节点
+				String candealaipformnode = getCustomPropertyByName(CustomStencilConstants.PROPERTY_CANDEAL_AIPFORMNODE,processInstance,null);
+				rec.setCandealaipformnode(candealaipformnode);
+				
+				
+				List<Task> tasks = taskService.createTaskQuery().processInstanceId(processInstanceId).list();
+				Task task = tasks.get(0);
+				// 第一级为个人任务
+				rec.setTaskId(task.getId());
+				
+				/**节点相关数据*/
+				String node = getNodeInfo(processInstance,null,"id");/*查询流程当前节点id*/
+				String nodeDetail = getNodeInfo(processInstance,null,"detail");/*查询流程当前节点描述*/
+				String nodeName = getNodeInfo(processInstance,null,"name");/*查询当前节点名称*/
+				rec.setNode(node);
+				rec.setNodeDetail(nodeDetail);
+				rec.setNodeName(nodeName);
+				
+				int index1 = flowProcInstRecMapper.insertOneFlowProceInstRec(rec);
+				int index2 = flowProcInstRecMapper.insertOneFlowProceInstRecHis(rec);
+				if( index1 < 1 || index2 < 1) {
+					throw new Exception();// 如果保存数据有问题，手动抛异常回滚数据
+				}
+			}
 			logger.info("======================启动成功：：：processDefinitionKey"+processDefinitionKey+"=====================");
-			return JsonResult.success(processInstanceId);
+			return JsonResult.success("成功");
 		}
 	}
 	
 	/********************************************************************************************************************************************
 	 * 流程退回操作
-	 * 此方法不支持会签回退！！！
+	 * 此方法不支持多实例回退！！！如果扩展需求，有多实例应用场景，请重新编写
 	 * 
-	 * @param taskId					当前任务ID
+	 * @param taskIds					当前任务ID,多个以英文逗号分隔
 	 * @param variables					流程变量
 	 * @return
 	 * @throws Exception 
 	 *******************************************************************************************************************************************/
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED,isolation = Isolation.DEFAULT,timeout=36000,rollbackFor=Exception.class)
-	public JsonResult<?> backFlowProcess(String taskId,String postilMessage,Map<String,Object> variables) throws Exception{
+	public JsonResult<?> backFlowProcess(String taskIds,String postilMessage,Map<String,Object> variables,String userId) throws Exception{
 		// TODO Auto-generated method stub
 		logger.info("==============================[流程退回操作]方法名：backFlowProcess[开始执行]==========================");
-		if( StringUtils.isEmpty(taskId) ) {
-			logger.error("==============================[流程退回操作]方法名：backFlowProcess[taskId不能为空]==========================");
+		if( StringUtils.isEmpty(taskIds) ) {
+			logger.error("==============================[流程退回操作]方法名：backFlowProcess[taskIds不能为空]==========================");
 			return JsonResult.failMessage("当前任务ID不能为空！");
 		}
 		// 批注信息
@@ -130,23 +211,59 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 		if( variables == null ) {
 			variables = new HashMap<String,Object>();
 		}
-		//添加批注信息
-		addProcessPostil(taskId,postilMessage);
-		Task task = this.findTaskById(taskId);
-		String processInstanceId = task.getProcessInstanceId();
-		//获取可以退回的的任务节点
-		List<ActivityImpl> activityList = this.findBackAvtivity(taskId);
-		if( activityList == null || !(activityList.size() > 0 )) {
-			logger.error("==============================[流程退回操作]方法名：backFlowProcess[没有检测到可退回的节点！]==========================");
-			return JsonResult.failMessage("没有检测到可退回的节点！");
-		}
-		//遍历退回
-		for (ActivityImpl activityImpl : activityList) {
+		
+		String taskIdsC[] = taskIds.split(",");
+		for (String taskId : taskIdsC) {
+			//添加批注信息
+			addProcessPostil(taskId,postilMessage);
+			Task task = this.findTaskById(taskId);
+			String processInstanceId = task.getProcessInstanceId();
+			//获取可以退回的的任务节点
+			List<ActivityImpl> activityList = this.findBackAvtivity(taskId);
+			if( activityList == null || !(activityList.size() > 0 )) {
+				logger.error("==============================[流程退回操作]方法名：backFlowProcess[没有检测到可退回的节点！]==========================");
+				return JsonResult.failMessage("没有检测到可退回的节点！");
+			}
+			
+			ActivityImpl activityImpl = activityList.get(0);
+			
+			/**记录流程状态*/
+			ProcessInstance processInstance = findProcessInstanceByTaskId(taskId);
+			FlowProcInstRec rec = flowProcInstRecMapper.selectFlowProcInstRecByProcessInstanceId(processInstanceId);
+			rec.setId(String.valueOf(IdGen.get().next()));
+			rec.setFlowStatus("3");
+			rec.setUserId(userId);
+			rec.setOpTime(new Date());
+			rec.setPostilMessage(postilMessage);
+			rec.setSn(String.valueOf((Integer.parseInt(rec.getSn())+1)));
+			
+			// 处理历史记录
+			flowProcInstRecMapper.insertOneFlowProceInstRecHis(rec);
+			
 			String activityId = activityImpl.getId();
 			// 退回
 			this.backProcess(taskId, activityId, variables);
 			// 自动接收
-			autoClaimTaskAfterBackTask(activityId,processInstanceId);
+			Map<String,String> lastDeal = autoClaimTaskAfterBackTask(activityId,processInstanceId);
+			String lastAssignee = lastDeal.get("lastAssignee");
+			String lastTaskId = lastDeal.get("laskTaskId");
+			rec.setUserId(lastAssignee);
+			rec.setTaskId(lastTaskId);
+			
+			/**节点表单可编辑节点*/
+			String candealaipformnode = getCustomPropertyByName(CustomStencilConstants.PROPERTY_CANDEAL_AIPFORMNODE,processInstance,activityId);
+			rec.setCandealaipformnode(candealaipformnode);
+			
+			/**节点相关数据*/
+			String node = getNodeInfo(processInstance,activityId,"id");/*查询流程当前节点id*/
+			String nodeDetail = getNodeInfo(processInstance,activityId,"detail");/*查询流程当前节点描述*/
+			String nodeName = getNodeInfo(processInstance,activityId,"name");/*查询当前节点名称*/
+			rec.setNode(node);
+			rec.setNodeDetail(nodeDetail);
+			rec.setNodeName(nodeName);
+			
+			flowProcInstRecMapper.delOneFlowProceInstRec(processInstanceId);
+			flowProcInstRecMapper.insertOneFlowProceInstRec(rec);
 		}
 		logger.info("==============================[流程退回操作]方法名：backFlowProcess[退回成功]==========================");
 		return JsonResult.successMessage("退回成功");
@@ -155,18 +272,18 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 	/********************************************************************************************************************************************
 	 * 流程提交操作
 	 * 
-	 * @param taskId					当前任务ID
+	 * @param taskIds					当前任务ID，多个以英文逗号分隔
 	 * @param variables					流程变量
 	 * @return
 	 * @throws Exception 
 	 *******************************************************************************************************************************************/
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED,isolation = Isolation.DEFAULT,timeout=36000,rollbackFor=Exception.class)
-	public JsonResult<?> passFlowProcess(String taskId,String postilMessage, Map<String, Object> variables) throws Exception {
+	public JsonResult<?> passFlowProcess(String taskIds,String postilMessage, Map<String, Object> variables,String userId) throws Exception {
 		// TODO Auto-generated method stub
 		logger.info("==============================[流程提交操作]方法名：passFlowProcess[开始执行]==========================");
-		if( StringUtils.isEmpty(taskId) ) {
-			logger.error("==============================[流程提交操作]方法名：passFlowProcess[taskId不能为空]==========================");
+		if( StringUtils.isEmpty(taskIds) ) {
+			logger.error("==============================[流程提交操作]方法名：passFlowProcess[taskIds不能为空]==========================");
 			return JsonResult.failMessage("当前任务ID不能为空！");
 		}
 		// 批注信息
@@ -177,18 +294,55 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 		if( variables == null ) {
 			variables = new HashMap<String,Object>();
 		}
-		//添加批注信息
-		addProcessPostil(taskId,postilMessage);
-		this.passProcess(taskId, variables);			
+		
+		Map<String,String> resultMap = new HashMap<String,String>();
+		
+		String taskIdsC[] = taskIds.split(",");
+		for (String taskId : taskIdsC) {
+			/**记录流程状态*/
+			ProcessInstance processInstance = findProcessInstanceByTaskId(taskId);
+			String processInstanceId = processInstance.getProcessInstanceId();
+			FlowProcInstRec rec = flowProcInstRecMapper.selectFlowProcInstRecByProcessInstanceId(processInstanceId);
+			// 处理历史记录
+			FlowProcInstRec recHis = rec;
+			recHis.setId(String.valueOf(IdGen.get().next()));
+			recHis.setUserId(userId);
+			recHis.setOpTime(new Date());
+			recHis.setPostilMessage(postilMessage);
+			recHis.setSn(String.valueOf((Integer.parseInt(rec.getSn())+1)));
+			// 判断下级节点是否结束节点
+			String flowStatus = "2";
+			recHis.setFlowStatus(flowStatus);
+			if(judgeNextIsOver(taskId)) {
+				// 流程结束
+				flowStatus = "7";
+				recHis.setFlowStatus(flowStatus);
+				flowProcInstRecMapper.delOneFlowProceInstRec(processInstanceId);
+			}else {
+				flowProcInstRecMapper.delOneFlowProceInstRec(processInstanceId);
+				flowProcInstRecMapper.insertOneFlowProceInstRec(recHis);
+			}
+			
+			/**流程记录任务历史*/
+			flowProcInstRecMapper.insertOneFlowProceInstRecHis(recHis);
+			
+			/**添加批注信息，提交通过*/
+			addProcessPostil(taskId,postilMessage);
+			this.passProcess(taskId, variables);
+			
+			/**存储审批通过后流程是否结束*/
+			String businessKey = processInstance.getBusinessKey();
+			resultMap.put(businessKey, flowStatus);
+		}
 		logger.info("==============================[流程提交操作]方法名：passFlowProcess[提交成功]==========================");
-		return JsonResult.successMessage("提交成功");
+		return JsonResult.success(resultMap);
 	}
 	
 	/*********************************************************************************************************************************************
 	 * 
 	 * 流程拒绝操作（直接结束END）
 	 * 
-	 * @param taskId					当前任务ID
+	 * @param taskIds					当前任务ID,多个以英文逗号分隔
 	 * @param variables					流程变量
 	 * @return
 	 * @throws Exception 
@@ -196,11 +350,11 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 	 ********************************************************************************************************************************************/
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED,isolation = Isolation.DEFAULT,timeout=36000,rollbackFor=Exception.class)
-	public JsonResult<?> refuseFlowProcess(String taskId,String postilMessage, Map<String, Object> variables) throws Exception {
+	public JsonResult<?> refuseFlowProcess(String taskIds,String postilMessage, Map<String, Object> variables,String userId) throws Exception {
 		// TODO Auto-generated method stub
 		logger.info("==============================[流程拒绝（结束）操作]方法名：refuseFlowProcess[开始执行]==========================");
-		if( StringUtils.isEmpty(taskId) ) {
-			logger.error("==============================[流程拒绝（结束）操作]方法名：refuseFlowProcess[taskId不能为空]==========================");
+		if( StringUtils.isEmpty(taskIds) ) {
+			logger.error("==============================[流程拒绝（结束）操作]方法名：refuseFlowProcess[taskIds不能为空]==========================");
 			return JsonResult.failMessage("当前任务ID不能为空！");
 		}
 		// 批注信息
@@ -211,10 +365,31 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 		if( variables == null ) {
 			variables = new HashMap<String,Object>();
 		}
-		//添加批注
-		addProcessPostil(taskId,postilMessage);
-		//结束流程
-		this.endProcess(taskId,variables);
+		
+		String taskIdsC[] = taskIds.split(",");
+		for (String taskId : taskIdsC) {
+			/**记录流程状态*/
+			ProcessInstance processInstance = findProcessInstanceByTaskId(taskId);
+			String processInstanceId = processInstance.getProcessInstanceId();
+			FlowProcInstRec rec = flowProcInstRecMapper.selectFlowProcInstRecByProcessInstanceId(processInstanceId);
+			// 执行记录
+			rec.setId(String.valueOf(IdGen.get().next()));
+			rec.setUserId(userId);
+			rec.setOpTime(new Date());
+			rec.setFlowStatus("4");
+			rec.setPostilMessage(postilMessage);
+			rec.setSn(String.valueOf((Integer.parseInt(rec.getSn())+1)));
+			rec.setTaskId(taskId);
+			flowProcInstRecMapper.delOneFlowProceInstRec(processInstanceId);
+			flowProcInstRecMapper.insertOneFlowProceInstRecHis(rec);
+			flowProcInstRecMapper.delOneFlowProceInstRec(processInstanceId);
+			
+			//添加批注
+			addProcessPostil(taskId,postilMessage);
+			//结束流程
+			this.endProcess(taskId,variables);
+		}
+		
 		logger.info("==============================[流程拒绝（结束）操作]方法名：refuseFlowProcess[拒绝（结束）成功]==========================");
 		return JsonResult.successMessage("拒绝（结束）成功");
 	}
@@ -222,41 +397,98 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 	/*********************************************************************************************************************************************
 	 * 任务接收
 	 * 
-	 * @param taskId					当前任务ID
+	 * @param taskIds					当前任务ID,多个以英文逗号分隔
 	 * @param userId					接收人编号userId
 	 * @return
 	 ********************************************************************************************************************************************/
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED,isolation = Isolation.DEFAULT,timeout=36000,rollbackFor=Exception.class)
-	public JsonResult<String> claimTask(String taskId, String userId) throws Exception{
+	public JsonResult<?> claimTask(String taskIds, String userId) throws Exception{
 		// TODO Auto-generated method stub
-		logger.info("======================任务接收：：：用户userId：：：userId"+userId+"===任务编号taskId：：："+taskId+"=====================");
-		if(StringUtils.isEmpty(taskId)||StringUtils.isEmpty(userId)) {
-			return JsonResult.failMessage("userId和taskId  均不能为空");
+		logger.info("======================任务接收：：：用户userId：：：userId"+userId+"===任务编号taskId：：："+taskIds+"=====================");
+		if(StringUtils.isEmpty(taskIds)||StringUtils.isEmpty(userId)) {
+			return JsonResult.failMessage("userId和taskIds  均不能为空");
 		}
-		taskService.claim(taskId, userId);
-		logger.info("======================任务接收成功：：：用户userId：：：userId"+userId+"===任务编号taskId：：："+taskId+"=====================");
-		return JsonResult.success();
+		
+		List<String> resultKey = new ArrayList<String>();
+		
+		String taskIdsC[] = taskIds.split(",");
+		for (String taskId : taskIdsC) {
+			// 任务接收
+			taskService.claim(taskId, userId);
+			
+			/**记录流程状态*/
+			ProcessInstance processInstance = findProcessInstanceByTaskId(taskId);
+			String processInstanceId = processInstance.getProcessInstanceId();
+			FlowProcInstRec rec = flowProcInstRecMapper.selectLastFlowProcInstRecHisByProcessInstanceId(processInstanceId);
+			// 执行记录
+			rec.setId(String.valueOf(IdGen.get().next()));
+			rec.setUserId(userId);
+			rec.setOpTime(new Date());
+			rec.setFlowStatus("5");
+			rec.setSn(String.valueOf((Integer.parseInt(rec.getSn())+1)));
+			rec.setTaskId(taskId);
+			
+			// 当前节点可编辑节点
+			String candealaipformnode = getCustomPropertyByName(CustomStencilConstants.PROPERTY_CANDEAL_AIPFORMNODE,processInstance,null);
+			rec.setCandealaipformnode(candealaipformnode);
+			
+			/**节点相关数据*/
+			String node = getNodeInfo(processInstance,null,"id");/*查询流程当前节点id*/
+			String nodeDetail = getNodeInfo(processInstance,null,"detail");/*查询流程当前节点描述*/
+			String nodeName = getNodeInfo(processInstance,null,"name");/*查询当前节点名称*/
+			rec.setNode(node);
+			rec.setNodeDetail(nodeDetail);
+			rec.setNodeName(nodeName);
+			
+			int index  = flowProcInstRecMapper.delOneFlowProceInstRec(processInstanceId);
+			int index1 = flowProcInstRecMapper.insertOneFlowProceInstRec(rec);
+			int index2 = flowProcInstRecMapper.insertOneFlowProceInstRecHis(rec);
+			if( index1 < 1 || index2 < 1) {
+				throw new Exception();// 如果保存数据有问题，手动抛异常回滚数据
+			}
+			// 返回业务主键集合
+			resultKey.add(processInstance.getBusinessKey());
+		}
+		logger.info("======================任务接收成功：：：用户userId：：：userId"+userId+"===任务编号taskId：：："+taskIds+"=====================");
+		return JsonResult.success(resultKey);
 	}
 	
 	/*********************************************************************************************************************************************
 	 * 任务退回组内
 	 * 
-	 * @param taskId					当前任务ID
+	 * @param taskIds					当前任务ID,多个以英文逗号分隔
 	 * @param userId					接收人编号userId
 	 * @return
 	 ********************************************************************************************************************************************/
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED,isolation = Isolation.DEFAULT,timeout=36000,rollbackFor=Exception.class)
-	public JsonResult<String> unClaimTask(String taskId) throws Exception{
+	public JsonResult<?> unClaimTask(String taskIds,String userId) throws Exception{
 		// TODO Auto-generated method stub
-		logger.info("======================任务退回组内：：：：任务编号taskId：：："+taskId+"=====================");
-		if(StringUtils.isEmpty(taskId)) {
+		logger.info("======================任务退回组内：：：：任务编号taskId：：："+taskIds+"=====================");
+		if(StringUtils.isEmpty(taskIds)) {
 			return JsonResult.failMessage("userId不能为空");
 		}
-		taskService.unclaim(taskId);
-		logger.info("======================任务接收成功：：：任务编号taskId：：："+taskId+"=====================");
-		return JsonResult.success();
+		List<String> resultKey = new ArrayList<String>();
+		String taskIdsC[] = taskIds.split(",");
+		for (String taskId : taskIdsC) {
+			
+			taskService.unclaim(taskId);
+			/**记录流程状态*/
+			ProcessInstance processInstance = findProcessInstanceByTaskId(taskId);
+			String processInstanceId = processInstance.getProcessInstanceId();
+			FlowProcInstRec rec = flowProcInstRecMapper.selectFlowProcInstRecByProcessInstanceId(processInstanceId);
+			rec.setFlowStatus("6");
+			rec.setId(String.valueOf(IdGen.get().next()));
+			rec.setOpTime(new Date());
+			rec.setPostilMessage("取消认领");
+			rec.setSn(String.valueOf((Integer.parseInt(rec.getSn())+1)));
+			flowProcInstRecMapper.delOneFlowProceInstRec(processInstanceId);
+			flowProcInstRecMapper.insertOneFlowProceInstRecHis(rec);
+			resultKey.add(processInstance.getBusinessKey());
+		}
+		logger.info("======================任务接收成功：：：任务编号taskId：：："+taskIds+"=====================");
+		return JsonResult.success(resultKey);
 	}
 	
 	
@@ -272,7 +504,7 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 	
 	
 	/********************************************************************************************************************************************
-	 * 根据当前任务ID，查询可以驳回的任务节点
+	 * 根据当前任务ID，查询可以退回的任务节点
 	 * 
 	 * @param taskId		当前任务ID
 	 *******************************************************************************************************************************************/
@@ -282,7 +514,7 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 	}
  
 	/********************************************************************************************************************************************
-	 * 审批通过(驳回直接跳回功能需后续扩展)
+	 * 审批通过(退回直接跳回功能需后续扩展)
 	 * 
 	 * @param taskId		当前任务ID
 	 * @param variables		流程存储参数
@@ -294,19 +526,25 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 	}
  
 	/********************************************************************************************************************************************
-	 * 驳回流程
+	 * 退回流程
 	 * 
 	 * @param taskId		当前任务ID
-	 * @param activityId	驳回节点ID
+	 * @param activityId	退回节点ID
 	 * @param variables		流程存储参数
 	 * @throws Exception
 	 *******************************************************************************************************************************************/
 	public void backProcess(String taskId, String activityId,
 			Map<String, Object> variables) throws Exception {
 		if (StringUtils.isEmpty(activityId)) {
-			throw new Exception("驳回目标节点ID为空！");
+			throw new Exception("退回目标节点ID为空！");
 		}
-		// 查找所有并行任务节点，同时驳回
+//		 // 查询本节点发起的会签任务，并结束  
+//        List<Task> tasks = taskService.createTaskQuery().parentTaskId(taskId)  
+//                .taskDescription("jointProcess").list();  
+//        for (Task task : tasks) {  
+//            commitProcess(task.getId(), null, null);  
+//        }  
+		// 查找所有并行任务节点，同时退回
 		List<Task> taskList = findTaskListByKey(findProcessInstanceByTaskId(
 				taskId).getId(), findTaskById(taskId).getTaskDefinitionKey());
 		for (Task task : taskList) {
@@ -344,7 +582,31 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 		ActivityImpl endActivity = findActivitiImpl(taskId, "end");
 		commitProcess(taskId, variables, endActivity.getId());
 	}
- 
+	
+	/******************************************************************************************************************************************* 
+     * 会签操作 
+     *  
+     * @param taskId 
+     *            当前任务ID 
+     * @param userCodes 
+     *            会签人账号集合 
+     * @throws Exception 
+     ******************************************************************************************************************************************/  
+    public void jointProcess(String taskId, List<String> userCodes)  
+            throws Exception {  
+        for (String userCode : userCodes) {  
+            TaskEntity task = (TaskEntity) taskService.newTask(IDGenerator.getNextId());  
+            task.setAssignee(userCode);  
+            task.setName(findTaskById(taskId).getName() + "-会签");  
+            task.setProcessDefinitionId(findProcessDefinitionEntityByTaskId(  
+                    taskId).getId());  
+            task.setProcessInstanceId(findProcessInstanceByTaskId(taskId)  
+                    .getId());  
+            task.setParentTaskId(taskId);  
+            task.setDescription("jointProcess");  
+            taskService.saveTask(task);  
+        }  
+    }  
  
 	/******************************************************************************************************************************************
 	 * 转办流程
@@ -433,29 +695,36 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 	 *******************************************************************************************************************************************/
 	private void turnTransition(String taskId, String activityId,
 			Map<String, Object> variables) throws Exception {
+		
 		// 当前节点
 		ActivityImpl currActivity = findActivitiImpl(taskId, null);
+		
 		// 清空当前流向
 		List<PvmTransition> oriPvmTransitionList = clearTransition(currActivity);
  
 		// 创建新流向
 		TransitionImpl newTransition = currActivity.createOutgoingTransition();
+		
 		// 目标节点
 		ActivityImpl pointActivity = findActivitiImpl(taskId, activityId);
+		
 		// 设置新流向的目标节点
 		newTransition.setDestination(pointActivity);
  
 		// 执行转向任务
 		taskService.complete(taskId, variables);
+		
 		// 删除目标节点新流入
 		pointActivity.getIncomingTransitions().remove(newTransition);
  
 		// 还原以前流向
 		restoreTransition(currActivity, oriPvmTransitionList);
 	}
- 
+	
+	
+	
 	/********************************************************************************************************************************************
-	 * 迭代循环流程树结构，查询当前节点可驳回的任务节点
+	 * 迭代循环流程树结构，查询当前节点可退回的任务节点
 	 * 
 	 * @param taskId
 	 *            当前任务ID
@@ -470,12 +739,18 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 	private List<ActivityImpl> iteratorBackActivity(String taskId,
 			ActivityImpl currActivity, List<ActivityImpl> rtnList,
 			List<ActivityImpl> tempList) throws Exception {
-		// 查询流程定义，生成流程树结构
+		
+		ActivityImpl currActivityFirst = findActivitiImpl(taskId,null);
+		String type_1 = (String) currActivity.getProperty("type");
+		if(!(currActivity.getId()).equals(currActivityFirst.getId()) && "userTask".equals(type_1)) {
+			return rtnList;
+		}
+		
+		// 查询流程实例，生成流程树结构
 		ProcessInstance processInstance = findProcessInstanceByTaskId(taskId);
  
 		// 当前节点的流入来源
-		List<PvmTransition> incomingTransitions = currActivity
-				.getIncomingTransitions();
+		List<PvmTransition> incomingTransitions = currActivity.getIncomingTransitions();
 		// 条件分支节点集合，userTask节点遍历完毕，迭代遍历此集合，查询条件分支对应的userTask节点
 		List<ActivityImpl> exclusiveGateways = new ArrayList<ActivityImpl>();
 		// 并行节点集合，userTask节点遍历完毕，迭代遍历此集合，查询并行节点对应的userTask节点
@@ -486,13 +761,12 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 			ActivityImpl activityImpl = transitionImpl.getSource();
 			String type = (String) activityImpl.getProperty("type");
 			/**
-			 * 并行节点配置要求：<br>
+			 * 并行节点配置要求：
 			 * 必须成对出现，且要求分别配置节点ID为:XXX_start(开始)，XXX_end(结束)
 			 */
 			if ("parallelGateway".equals(type)) {// 并行路线
 				String gatewayId = activityImpl.getId();
-				String gatewayType = gatewayId.substring(gatewayId
-						.lastIndexOf("_") + 1);
+				String gatewayType = gatewayId.substring(gatewayId.lastIndexOf("_") + 1);
 				if ("START".equals(gatewayType.toUpperCase())) {// 并行起点，停止递归
 					return rtnList;
 				} else {// 并行终点，临时存储此节点，本次循环结束，迭代集合，查询对应的userTask节点
@@ -529,7 +803,7 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 		if (currActivity != null) {
 			// 查询当前节点的流向是否为并行终点，并获取并行起点ID
 			String id = findParallelGatewayId(currActivity);
-			if (StringUtils.isEmpty(id)) {// 并行起点ID为空，此节点流向不是并行终点，符合驳回条件，存储此节点
+			if (StringUtils.isEmpty(id)) {// 并行起点ID为空，此节点流向不是并行终点，符合退回条件，存储此节点
 				rtnList.add(currActivity);
 			} else {// 根据并行起点ID查询当前节点，然后迭代查询其对应的userTask任务节点
 				currActivity = findActivitiImpl(taskId, id);
@@ -544,7 +818,7 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 	}
  
 	/********************************************************************************************************************************************
-	 * 反向排序list集合，便于驳回节点按顺序显示
+	 * 反向排序list集合，便于退回节点按顺序显示
 	 * 
 	 * @param list
 	 * @return
@@ -718,7 +992,7 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 	 * @return
 	 * @throws Exception
 	 *******************************************************************************************************************************************/
-	private ProcessInstance findProcessInstanceByTaskId(String taskId)
+	public ProcessInstance findProcessInstanceByTaskId(String taskId)
 			throws Exception {
 		// 找到流程实例
 		ProcessInstance processInstance = runtimeService
@@ -790,12 +1064,12 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 		return activityImpl;
 	}
 	
-	/**
+	/********************************************************************************************************************************************
 	 * 添加批注信息
 	 * @param taskId			任务编号
 	 * @param postilMessage		批注信息
 	 * @throws Exception
-	 */
+	 *******************************************************************************************************************************************/
 	private void addProcessPostil(String taskId,String postilMessage) throws Exception{
 		String processInstanceId = "";
 		ProcessInstance processInstance = findProcessInstanceByTaskId(taskId);
@@ -803,15 +1077,15 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 		taskService.addComment(taskId, processInstanceId, postilMessage);
 	}
 	
-	/**
+	/********************************************************************************************************************************************
 	 * 退回时尝试找到上一个办理人自动接收任务
 	 * 
 	 * @param activityId
 	 * @param taskId
 	 * @throws Exception
-	 */
-	private void autoClaimTaskAfterBackTask(String activityId,String processInstanceId) throws Exception {
-		//找到最后一个代理人自动接收，不知道有没有问题，先试试  0-0
+	 *******************************************************************************************************************************************/
+	private Map<String,String> autoClaimTaskAfterBackTask(String activityId,String processInstanceId) throws Exception {
+		//找到最后一个代理人自动接收
 		List<HistoricActivityInstance> list = historyService
 				.createHistoricActivityInstanceQuery()
 				.activityId(activityId)
@@ -828,11 +1102,99 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 		Task lastTask = tasks.get(0);
 		String lastTaskId = lastTask.getId();
 		taskService.claim(lastTaskId, lastAssignee);
+		Map<String,String> result = new HashMap<String,String>();
+		result.put("laskTaskId", lastTaskId);
+		result.put("lastAssignee", lastAssignee);
+		return result;
 	}
-
-
-
 	
-
+	/**
+	 * 获取自定义扩展属性
+	 * @param propertyName
+	 * @param processInstance
+	 * @return
+	 * @throws Exception
+	 */
+	public String getCustomPropertyByName(String propertyName,ProcessInstance processInstance,String activityId) throws Exception{
+		String elementValue = null;
+		
+		/**查询流程当前组编号和节点描述*/
+		String processDefinitionId = processInstance.getProcessDefinitionId();
+		
+		if(activityId == null) {
+			activityId = processInstance.getActivityId();
+		}
+		
+		BpmnModel bmplModel = repositoryService.getBpmnModel(processDefinitionId);
+		FlowElement flowElement = bmplModel.getProcesses().get(0).getFlowElement(activityId);
+		
+		// 获取扩展元素的信息
+		Map<String, List<ExtensionElement>> extensionElements = flowElement
+				.getExtensionElements();
+		Iterator<Entry<String, List<ExtensionElement>>> it = extensionElements
+				.entrySet().iterator();
+		
+		while (it.hasNext()) {
+			Entry<String, List<ExtensionElement>> entry = it.next();
+			// 获取根标签的名称
+			String elementKey = entry.getKey();
+			List<ExtensionElement> value = entry.getValue();
+			if(propertyName.equals(elementKey)) {
+				ExtensionElement e = value.get(0);
+				elementValue = e.getElementText();
+				if(StringUtils.isNotEmpty(elementValue)) {
+					break;
+				}
+			}
+			
+		}
+		
+		return elementValue;
+	}
+	
+	/**
+	 * 获取当前节点信息
+	 * @param processInstance
+	 * @param activityId
+	 * @param type				：name-节点名	detail-节点描述	id-编号
+	 * @return
+	 */
+	private String getNodeInfo(ProcessInstance processInstance,String activityId,String type) {
+		String processDefinitionId = processInstance.getProcessDefinitionId();
+		if(activityId == null) {
+			activityId = processInstance.getActivityId();
+		}
+		BpmnModel bmplModel = repositoryService.getBpmnModel(processDefinitionId);
+		FlowElement flowElement = bmplModel.getProcesses().get(0).getFlowElement(activityId);
+		
+		if("name".equals(type)) {
+			return flowElement.getName();
+		}else if("detail".equals(type)) {
+			return flowElement.getDocumentation();
+		}else if("id".equals(type)){
+			return flowElement.getId();
+		}else {
+			return "";
+		}
+	}
+	
+	/**
+	 * 判断下节点是否结束节点
+	 * @param taskId
+	 * @return
+	 * @throws Exception
+	 */
+	private Boolean judgeNextIsOver(String taskId) throws Exception{
+		ActivityImpl currActivity = findActivitiImpl(taskId, null);
+		List<PvmTransition> outp = currActivity.getOutgoingTransitions();
+		for (PvmTransition pvmTransition : outp) {
+			PvmActivity ac = pvmTransition.getDestination();
+			String nextType = (String)ac.getProperty("type");
+			if("endEvent".equals(nextType)) {
+				return true;
+			}
+		}
+		return false;
+	}
 	
 }

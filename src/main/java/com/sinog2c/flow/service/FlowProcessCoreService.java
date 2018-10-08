@@ -23,56 +23,57 @@ public interface FlowProcessCoreService {
 	 * @param processDefinitionKey		流程定义key
 	 * @param tenantId					系统ID
 	 * @param variables					流程变量
-	 * @param businessKey				业务主键
+	 * @param businessKeys				业务主键，批量多个以英文逗号隔开
 	 * @return
 	 */
-	JsonResult<String> startFlowProcess(String processDefinitionKey,String tenantId,Map<String,Object> variables,String businessKey) throws Exception;
+	JsonResult<String> startFlowProcess(String processDefinitionKey,String tenantId,
+			Map<String,Object> variables,String businessKeys,String userId) throws Exception;
 	
 	/**
 	 * 流程退回操作
 	 * 
-	 * @param taskId					当前任务ID
+	 * @param taskIds					当前任务ID,多个以英文逗号分隔
 	 * @param postilMessage				批注信息
 	 * @param variables					流程变量
 	 * @return
 	 * @throws Exception 
 	 */
-	JsonResult backFlowProcess(String taskId,String postilMessage,Map<String,Object> variables) throws Exception;
+	JsonResult backFlowProcess(String taskId,String postilMessage,Map<String,Object> variables,String userId) throws Exception;
 	
 	/**
 	 * 流程提交操作
-	 * @param taskId					当前任务ID
+	 * @param taskIds					当前任务ID,多个以英文逗号分隔
 	 * @param postilMessage				批注信息
 	 * @param variables					流程变量
 	 * @return
 	 * @throws Exception 
 	 */
-	JsonResult passFlowProcess(String taskId,String postilMessage,Map<String,Object> variables) throws Exception;
+	JsonResult passFlowProcess(String taskIds,String postilMessage,Map<String,Object> variables,String userId) throws Exception;
 	
 	/**
 	 * 流程拒绝操作（结束）
-	 * @param taskId					当前任务ID
+	 * @param taskIds					当前任务ID,多个以英文逗号分隔
 	 * @param postilMessage				批注信息
 	 * @param variables					流程变量
 	 * @return
 	 */
-	JsonResult refuseFlowProcess(String taskId,String postilMessage,Map<String,Object> variables) throws Exception;
+	JsonResult refuseFlowProcess(String taskIds,String postilMessage,Map<String,Object> variables,String userId) throws Exception;
 	
 	/**
 	 * 任务接收
 	 * 
-	 * @param taskId					当前任务ID
+	 * @param taskIds					当前任务ID,多个以英文逗号分隔
 	 * @param userId					接收人编号userId
 	 * @return
 	 */
-	JsonResult<String> claimTask(String taskId,String userId) throws Exception;
+	JsonResult<?> claimTask(String taskIds,String userId) throws Exception;
 	
 	/**
 	 * 任务退回到组内
 	 * 
-	 * @param taskId					当前任务ID
+	 * @param taskIds					当前任务ID,多个以英文逗号分隔
 	 * @return
 	 */
-	JsonResult<String> unClaimTask(String taskId) throws Exception;
+	JsonResult<?> unClaimTask(String taskIds,String userId) throws Exception;
 	
 }

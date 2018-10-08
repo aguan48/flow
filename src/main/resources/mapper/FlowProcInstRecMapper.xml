@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinog2c.flow.mapper.FlowProcInstRecMapper">
+	
+	<insert id="insertOneFlowProceInstRec" parameterType="com.sinog2c.flow.domain.FlowProcInstRec">
+		insert into t_flow_procinstrec
+		 	(id, processInstanceId, processDefinitionKey, businessKey, userId, 
+		 	 startUserId, taskId, flowStatus, nodeDetail, postilMessage, opTime,candealaipformnode, sn, tenantId,nodeName,node)
+		 values
+		 	(#{id},#{processInstanceId},#{processDefinitionKey},#{businessKey},#{userId},
+		 	 #{startUserId},#{taskId},#{flowStatus},#{nodeDetail},#{postilMessage},#{opTime},
+		 	 #{candealaipformnode},#{sn},#{tenantId},#{nodeName},#{node});
+	</insert>
+	
+	<insert id="insertOneFlowProceInstRecHis" parameterType="com.sinog2c.flow.domain.FlowProcInstRec">
+		insert into t_flow_procinstrec_his
+		 	(id, processInstanceId, processDefinitionKey, businessKey, userId, 
+		 	 startUserId, taskId, flowStatus, nodeDetail, postilMessage, opTime, candealaipformnode, sn, tenantId,nodeName,node)
+		 values
+		 	(#{id},#{processInstanceId},#{processDefinitionKey},#{businessKey},#{userId},
+		 	 #{startUserId},#{taskId},#{flowStatus},#{nodeDetail},#{postilMessage},#{opTime},
+		 	 #{candealaipformnode},#{sn},#{tenantId},#{nodeName},#{node});
+	</insert>
+	
+	<delete id="delOneFlowProceInstRec" parameterType="String">
+		delete from 
+			t_flow_procinstrec
+		where 
+			processInstanceId = #{processInstanceId}
+	</delete>
+	
+	<update id="updateFlowProceInstRec" parameterType="Map">
+		UPDATE 
+			t_flow_procinstrec t
+		set 
+			t.userId = #{userId, jdbcType=VARCHAR}
+		where 
+			t.processInstanceId = #{processInstanceId}
+	</update>
+	
+	<update id="updateFlowProceInstRecHis" parameterType="Map">
+		UPDATE 
+			t_flow_procinstrec_his t
+		set 
+			t.userId = #{userId, jdbcType=VARCHAR}
+		where 
+			t.id = #{recid}
+	</update>
+	
+	<select id="selectFlowProcInstRecByProcessInstanceId" parameterType="String" resultType="com.sinog2c.flow.domain.FlowProcInstRec">
+		select * from t_flow_procinstrec t
+		where t.processInstanceId = #{processInstanceId}
+	</select>
+	
+	<select id="selectLastFlowProcInstRecHisByProcessInstanceId" parameterType="String" resultType="com.sinog2c.flow.domain.FlowProcInstRec">
+		select * from t_flow_procinstrec_his t
+		where t.processInstanceId = #{processInstanceId}
+		and t.sn = (select max(tt.sn) from t_flow_procinstrec_his tt where tt.processInstanceId = #{processInstanceId})
+	</select>
+	
+	<select id="selectLastPassFlowProcInstRecHisByProcessInstanceId" parameterType="String" resultType="com.sinog2c.flow.domain.FlowProcInstRec">
+		select * from t_flow_procinstrec_his t
+		where t.processInstanceId = #{processInstanceId}
+		and t.sn = (select max(tt.sn) from t_flow_procinstrec_his tt where tt.processInstanceId = #{processInstanceId} and flowStatus = '2')
+	</select>
+	
+	<select id="selectPersonalBacklogTaskCount" parameterType="Map" resultType="Map">
+		SELECT 
+			t.processdefinitionkey,
+			t.node,
+			t.nodedetail,
+			t.nodename,
+			count(processdefinitionkey) num 
+		FROM 
+			`t_flow_procinstrec` t 
+		where 
+			userid = #{userId} 
+			and tenantid = #{tenantId} 
+		group by processdefinitionkey
+	</select>
+	
+</mapper>

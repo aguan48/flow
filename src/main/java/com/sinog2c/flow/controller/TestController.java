@@ -9,13 +9,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 
 import com.sinog2c.flow.mapper.TestMapper;
+import com.sinog2c.flow.service.TestService;
 
 /**
  * 对外测试
@@ -36,15 +36,12 @@ public class TestController {
 	@Autowired
 	private RepositoryService repositoryService;
 	
-	@PostMapping("/testConnect")
+	
+	@GetMapping("/testConnect")
 	@ResponseBody
-	public String testConnect(@RequestParam(name = "taskId",required = true) String taskId , 
-			@RequestBody(required = true) Map<String , Object> variableMap) {
+	public String testConnect() {
 		
-		String name = (String)variableMap.get("name");
-		
-		return "你已经成功连接到流程服务，HelloWorld！"+name+":::taskId"+taskId;
-		
+		return "弄死你！！！";
 	}
 	
 	/**

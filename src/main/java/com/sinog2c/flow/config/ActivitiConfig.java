@@ -4,12 +4,14 @@ import javax.sql.DataSource;
 
 import org.activiti.engine.FormService;
 import org.activiti.engine.HistoryService;
+import org.activiti.engine.IdentityService;
 import org.activiti.engine.ManagementService;
 import org.activiti.engine.ProcessEngine;
 import org.activiti.engine.RepositoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.impl.cfg.ProcessEngineConfigurationImpl;
+import org.activiti.engine.impl.history.HistoryLevel;
 import org.activiti.spring.SpringProcessEngineConfiguration;
 import org.activiti.spring.boot.ProcessEngineConfigurationConfigurer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +63,15 @@ public class ActivitiConfig implements ProcessEngineConfigurationConfigurer{
 		processEngineConfiguration.setDatabaseSchemaUpdate("true");
 		// 事物控制
 		processEngineConfiguration.setTransactionManager(transactionManager);
+		// 任务执行器、异步执行器
+		processEngineConfiguration.setJobExecutorActivate(false);
+		processEngineConfiguration.setAsyncExecutorEnabled(false);
+		processEngineConfiguration.setAsyncExecutorActivate(false);
+		// 历史记录等级
+		processEngineConfiguration.setHistoryLevel(HistoryLevel.FULL);
+		// 数据库验证
+		processEngineConfiguration.setDbIdentityUsed(false);
+		
 	}
 	
 	
@@ -94,5 +105,9 @@ public class ActivitiConfig implements ProcessEngineConfigurationConfigurer{
         return processEngine.getFormService();
     }
 	
-	
+    
+    @Bean
+    public IdentityService identityService(ProcessEngine processEngine) {
+        return processEngine.getIdentityService();
+    }
 }

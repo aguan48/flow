@@ -22,7 +22,8 @@ public interface FlowProcessQueryService {
 	 * @param userId					用户编号userId
 	 * @return
 	 */
-	JsonResult<List<Map<String,Object>>> getPersonalTaskListByAssignee(String userId);
+	JsonResult<List<Map<String,Object>>> getPersonalTaskListByAssignee(String userId,
+			String tenantId);
 	
 	/**
 	 * 根据流程定义key获取个人任务集合
@@ -31,7 +32,9 @@ public interface FlowProcessQueryService {
 	 * @param processDefinitionKey		流程定义key
 	 * @return
 	 */
-	JsonResult<List<Map<String,Object>>> getPersonalTaskListByAssignee(String userId,String processDefinitionKey);
+	JsonResult<List<Map<String,Object>>> getPersonalTaskListByAssignee(String userId,
+			String processDefinitionKey,
+			String tenantId);
 	
 	
 	/**
@@ -94,4 +97,22 @@ public interface FlowProcessQueryService {
 	 * @return
 	 */
 	JsonResult<List<Map<String,Object>>> getHisActivityByProcessInstanceId(String processInstanceId);
+	
+	/**
+	 * 根据租户和流程定义获取全部任务
+	 * 
+	 * @param tenantId				系统
+	 * @param processDefinitionKey	流程定义key
+	 * @return
+	 */
+	JsonResult<List<Map<String,Object>>> getAllTaskByTenantIdAndProcessDefinitionKey(String tenantId,String processDefinitionKey);
+	
+	/**
+	 * 获取个人某系统待办统计
+	 * 
+	 * @param tenantId				系统
+	 * @param processDefinitionKey	流程定义key
+	 * @return
+	 */
+	JsonResult<List<Map<String,Object>>> selectPersonalBacklogTaskCount(String userId,String tenantId);
 }

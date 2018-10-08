@@ -313,15 +313,15 @@
 				var content = "<form id='import_form' method='POST'  enctype='multipart/form-data'><table><tr>"+
 				"<td align='right'>所属系统：</td><td><input style='width:290px;' name='tenantId' id='tenantId' /></td><td class='td-red'>*</td>"+
 				"</tr><tr>"+
-				"<td colspan='3' style='color:red;'>&nbsp;&nbsp;&nbsp;&nbsp;*所属系统代码必填！</td>"+
+				"<td colspan='3' style='color:red;'>&nbsp;&nbsp;&nbsp;&nbsp;*请填入所属系统代码，必填项！</td>"+
 				"</tr></table></form>";
 				var obj={
 					type: "showSweetAlert",
 					close: "true",
-					title: "绑定系统",
+					title: "所属系统",
 					area:["460px","220px"],
 					content: content,
-					btn:["取消","导入"],
+					btn:["取消","发布"],
 					callBack1:function(){
 						method.msg_close();	            	
 					},
@@ -343,23 +343,21 @@
 		
 		//发布部署
 		function deploy(id,tenantId){
-			method.msg_close();
-			confirm("确定要部署选中记录吗？", function(rusult){
-				if(rusult){
-					$.ajax({
-						url: "${path}/activiti/deploy",
-						data: {modelId: id , tenantId: tenantId},
-						type: "post",
-						dataType: "json",
-						success: function (data) {
-							alert(data.message);
-						},
-						error: function (jqXHR, textStatus, errorThrown) {
-							alert("操作失败!");
+				$.ajax({
+					url: "${path}/activiti/deploy",
+					data: {modelId: id , tenantId: tenantId},
+					type: "post",
+					dataType: "json",
+					success: function (data) {
+						alert(data.message);
+						if(data.success == true){
+							method.msg_close();
 						}
-					});
-				}
-			})
+					},
+					error: function (jqXHR, textStatus, errorThrown) {
+						alert("操作失败!");
+					}
+				});
 		}
 		
 		

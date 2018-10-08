@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import com.sinog2c.flow.act.ActivitiUtil;
 import com.sinog2c.flow.domain.HistoricActivityInstanceResponse;
+import com.sinog2c.flow.mapper.FlowProcInstRecMapper;
 import com.sinog2c.flow.mapper.UserMapper;
 import com.sinog2c.flow.service.FlowProcessQueryService;
 import com.sinog2c.flow.util.JsonResult;
@@ -58,6 +59,9 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 	
 	@Autowired
 	private UserMapper userMapper;
+	
+	@Autowired
+	private FlowProcInstRecMapper flowProcInstRecMapper;
 
 	
 	/*********************************************************************************************************************************************
@@ -68,7 +72,8 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 	 * @return
 	 ********************************************************************************************************************************************/
 	@Override
-	public JsonResult<List<Map<String, Object>>> getPersonalTaskListByAssignee(String userId) {
+	public JsonResult<List<Map<String, Object>>> getPersonalTaskListByAssignee(String userId,
+			String tenantId) {
 		// TODO Auto-generated method stub
 		logger.info("======================[根据userId获取任务集合]方法名：getTaskListByAssignee[开始执行]=====================");
 		List<Map<String,Object>> resultList = new ArrayList<Map<String,Object>>();
@@ -78,10 +83,10 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 		}else {
 			try {
 				/**调用流程任务服务接口，根据个人userId查询个人任务 */
-				List<Task> tasksList = taskService.createTaskQuery().taskAssignee(userId)
+				List<Task> tasksList = taskService.createTaskQuery().taskAssignee(userId).taskTenantId(tenantId)
 						.orderByTaskCreateTime().desc().list();
 				if(tasksList != null || tasksList.size() > 0) {
-					resultList = ActivitiUtil.parseListTask2ListMap(tasksList,processEngine);
+					resultList = ActivitiUtil.parseListTask2ListMap(tasksList,processEngine,flowProcInstRecMapper);
 				}
 				return JsonResult.success(resultList);
 			} catch (Exception e) {
@@ -100,7 +105,9 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 	 * @return
 	 ********************************************************************************************************************************************/
 	@Override
-	public JsonResult<List<Map<String, Object>>> getPersonalTaskListByAssignee(String userId, String processDefinitionKey) {
+	public JsonResult<List<Map<String, Object>>> getPersonalTaskListByAssignee(String userId, 
+			String processDefinitionKey,
+			String tenantId) {
 		// TODO Auto-generated method stub
 		logger.info("======================[根据userId获取任务集合]方法名：getTaskListByAssignee[开始执行]=====================");
 		List<Map<String,Object>> resultList = new ArrayList<Map<String,Object>>();
@@ -110,10 +117,10 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 		}else {
 			try {
 				/**调用流程任务服务接口，根据个人userId查询个人任务 */
-				List<Task> tasksList = taskService.createTaskQuery().taskAssignee(userId)
+				List<Task> tasksList = taskService.createTaskQuery().taskAssignee(userId).taskTenantId(tenantId)
 						.processDefinitionKey(processDefinitionKey).orderByTaskCreateTime().desc().list();
 				if(tasksList != null || tasksList.size() > 0) {
-					resultList = ActivitiUtil.parseListTask2ListMap(tasksList,processEngine);
+					resultList = ActivitiUtil.parseListTask2ListMap(tasksList,processEngine,flowProcInstRecMapper);
 				}
 				return JsonResult.success(resultList);
 			} catch (Exception e) {
@@ -144,7 +151,7 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 				List<Task> tasksList = taskService.createTaskQuery().taskCandidateGroup(groupId)
 						.orderByTaskCreateTime().desc().list();
 				if(tasksList != null || tasksList.size() > 0) {
-					resultList = ActivitiUtil.parseListTask2ListMap(tasksList,processEngine);
+					resultList = ActivitiUtil.parseListTask2ListMap(tasksList,processEngine,flowProcInstRecMapper);
 				}
 				return JsonResult.success(resultList);
 			} catch (Exception e) {
@@ -176,7 +183,7 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 				List<Task> tasksList = taskService.createTaskQuery().taskCandidateGroup(groupId)
 						.processDefinitionKey(processDefinitionKey).orderByTaskCreateTime().desc().list();
 				if(tasksList != null || tasksList.size() > 0) {
-					resultList = ActivitiUtil.parseListTask2ListMap(tasksList,processEngine);
+					resultList = ActivitiUtil.parseListTask2ListMap(tasksList,processEngine,flowProcInstRecMapper);
 				}
 				return JsonResult.success(resultList);
 			} catch (Exception e) {
@@ -210,7 +217,7 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 				List<Task> tasksList = taskService.createTaskQuery().taskAssignee(userId).taskTenantId(tenantId)
 						.orderByTaskCreateTime().desc().list();
 				if(tasksList != null || tasksList.size() > 0) {
-					resultList = ActivitiUtil.parseListTask2ListMap(tasksList,processEngine);
+					resultList = ActivitiUtil.parseListTask2ListMap(tasksList,processEngine,flowProcInstRecMapper);
 				}
 				return JsonResult.success(resultList);
 			} catch (Exception e) {
@@ -244,7 +251,7 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 				List<Task> tasksList = taskService.createTaskQuery().taskAssignee(userId).taskTenantId(tenantId)
 						.processDefinitionKey(processDefinitionKey).orderByTaskCreateTime().desc().list();
 				if(tasksList != null || tasksList.size() > 0) {
-					resultList = ActivitiUtil.parseListTask2ListMap(tasksList,processEngine);
+					resultList = ActivitiUtil.parseListTask2ListMap(tasksList,processEngine,flowProcInstRecMapper);
 				}
 				return JsonResult.success(resultList);
 			} catch (Exception e) {
@@ -287,12 +294,9 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 						List<Map<String,Object>> list = groupResult.getData();
 						if(list != null && list.size() > 0) {
 							if(taskLists.containsAll(list)) {
-								logger.info("===");
 								continue;
 							}else {
-								logger.info("---");
 								taskLists.addAll(list);
-								logger.info(list.toString());
 							}
 						}
 					}
@@ -378,6 +382,36 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 			logger.info("=====[根据流程实例Id：processInstanceId获取历史活动]方法名：getHisActivityByProcessInstanceId[调用接口异常]====");
 			return JsonResult.failMessage("调用查询接口getHisActivityByProcessInstanceId异常");
 		}
+	}
+
+	@Override
+	public JsonResult<List<Map<String, Object>>> getAllTaskByTenantIdAndProcessDefinitionKey(String tenantId,String processDefinitionKey) {
+		// TODO Auto-generated method stub
+		List<Map<String,Object>> resultList = new ArrayList<Map<String,Object>>();
+		try {
+			List<Task> tasksList = taskService.createTaskQuery().processDefinitionKey(processDefinitionKey).taskTenantId(tenantId)
+					.list();
+			
+			if(tasksList != null || tasksList.size() > 0) {
+				resultList = ActivitiUtil.parseListTask2ListMap(tasksList,processEngine,flowProcInstRecMapper);
+			}
+			return JsonResult.success(resultList);
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return JsonResult.failMessage("调用查询接口getAllTaskByTenantIdAndProcessDefinitionKey异常");
+		}
+	}
+
+	@Override
+	public JsonResult<List<Map<String, Object>>> selectPersonalBacklogTaskCount(String userId, String tenantId) {
+		// TODO Auto-generated method stub
+		Map<String,String> param = new HashMap<String,String>();
+		param.put("userId", userId);
+		param.put("tenantId", tenantId);
+		List<Map<String, Object>> list = flowProcInstRecMapper.selectPersonalBacklogTaskCount(param);
+		return JsonResult.success(list);
 	}
 	
 

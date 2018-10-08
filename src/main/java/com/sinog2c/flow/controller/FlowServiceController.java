@@ -68,58 +68,67 @@ public class FlowServiceController {
 	@Autowired
 	private FlowProcessQueryService flowProcessQueryService;
 	
-	//启动（开启一个流程）
+	//启动（开启多个流程）businessKeys由businessKey拼接，分隔符英文逗号
 	@PostMapping("/startFlowProcess")
 	public JsonResult<?> startFlowProcess(@RequestParam(name = "processDefinitionKey",required = true) String processDefinitionKey,
 			@RequestParam(name = "tenantId",required = true) String tenantId,
-			@RequestParam(name = "businessKey",required = true) String businessKey,
-			@RequestBody(required = false) Map<String,Object> variables) {
+			@RequestParam(name = "businessKeys",required = true) String businessKeys,
+			@RequestParam(name = "userId",required = true) String userId,
+			@RequestBody(required = false) Map<String,Object> variables
+			) {
+		
 		JsonResult<?> result = JsonResult.failMessage("启动流程异常");
 		try {
-			result = flowProcessCoreService.startFlowProcess(processDefinitionKey, tenantId, variables, businessKey);
+			result = flowProcessCoreService.startFlowProcess(processDefinitionKey, tenantId, variables, businessKeys,userId);
+			return result;
 		} catch (Exception e) {
 			e.printStackTrace();
+			return result;
 		}
-		return result;
 	}
 	
 	//通过（提交）
 	@PostMapping("/passFlowProcess")
-	public JsonResult<?> passFlowProcess(@RequestParam(name = "taskId",required = true) String taskId,
+	public JsonResult<?> passFlowProcess(@RequestParam(name = "taskIds",required = true) String taskIds,
 			@RequestParam(name = "postilMessage",required = false) String postilMessage,
-			@RequestBody(required = false) Map<String,Object> variables) {
+			@RequestBody(required = false) Map<String,Object> variables,
+			@RequestParam(name = "userId",required = true) String userId) {
 		JsonResult<?> result = JsonResult.failMessage("提交流程异常");
 		try {
-			result = flowProcessCoreService.passFlowProcess(taskId, postilMessage, variables);
+			result = flowProcessCoreService.passFlowProcess(taskIds, postilMessage, variables, userId);
+			return result;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return result;
 		}
-		return result;
 	}
 	
 	//拒绝（结束）
 	@PostMapping("/refuseFlowProcess")
-	public JsonResult<?> refuseFlowProcess(@RequestParam(name = "taskId",required = true) String taskId,
+	public JsonResult<?> refuseFlowProcess(@RequestParam(name = "taskIds",required = true) String taskIds,
 			@RequestParam(name = "postilMessage",required = false) String postilMessage,
-			@RequestBody(required = false) Map<String,Object> variables){
+			@RequestBody(required = false) Map<String,Object> variables,
+			@RequestParam(name = "userId",required = true) String userId){
 		JsonResult<?> result= JsonResult.failMessage("启动流程异常");
 		try {
-			result = flowProcessCoreService.refuseFlowProcess(taskId, postilMessage, variables);
+			result = flowProcessCoreService.refuseFlowProcess(taskIds, postilMessage, variables, userId);
+			return result;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return result;
 		}
-		return result;
 	}
 	
 	//退回（驳回）
 	@PostMapping("/backFlowProcess")
-	public JsonResult<?> backFlowProcess(@RequestParam(name = "taskId",required = true) String taskId,
+	public JsonResult<?> backFlowProcess(@RequestParam(name = "taskIds",required = true) String taskIds,
 			@RequestParam(name = "postilMessage",required = false) String postilMessage,
-			@RequestBody(required = false) Map<String,Object> variables) {
+			@RequestBody(required = false) Map<String,Object> variables,
+			@RequestParam(name = "userId",required = true) String userId) {
 		try {
-			return flowProcessCoreService.backFlowProcess(taskId, postilMessage, variables);
+			return flowProcessCoreService.backFlowProcess(taskIds, postilMessage, variables, userId);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -129,10 +138,10 @@ public class FlowServiceController {
 	
 	//任务取回
 	@PostMapping("/claimTask")
-	public JsonResult<?> claimTask(@RequestParam(name = "taskId",required = true) String taskId,
+	public JsonResult<?> claimTask(@RequestParam(name = "taskIds",required = true) String taskIds,
 			@RequestParam(name = "userId",required = true) String userId){
 		try {
-			return flowProcessCoreService.claimTask(taskId, userId);
+			return flowProcessCoreService.claimTask(taskIds, userId);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -142,9 +151,10 @@ public class FlowServiceController {
 	
 	//任务放回组内
 	@PostMapping("/unClaimTask")
-	public JsonResult<?> unClaimTask(@RequestParam(name = "taskId",required = true) String taskId){
+	public JsonResult<?> unClaimTask(@RequestParam(name = "taskIds",required = true) String taskIds,
+			@RequestParam(name = "userId",required = true) String userId){
 		try {
-			return flowProcessCoreService.unClaimTask(taskId);
+			return flowProcessCoreService.unClaimTask(taskIds, userId);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return JsonResult.failMessage("任务放回组内异常");
@@ -153,16 +163,19 @@ public class FlowServiceController {
 	
 	//获取个人任务全部流程全部集合
 	@PostMapping("/getAllPersonalTaskListByAssignee")
-	public JsonResult<List<Map<String,Object>>> getPersonalTaskListByAssignee(@RequestParam(name = "userId",required = true) String userId) {
-		JsonResult<List<Map<String,Object>>> result = flowProcessQueryService.getPersonalTaskListByAssignee(userId);
+	public JsonResult<List<Map<String,Object>>> getPersonalTaskListByAssignee(
+			@RequestParam(name = "userId",required = true) String userId,
+			@RequestParam(name = "tenantId",required = true) String tenantId) {
+		JsonResult<List<Map<String,Object>>> result = flowProcessQueryService.getPersonalTaskListByAssignee(userId,tenantId);
 		return result;
 	}
 	
 	//根据流程定义key获取个人任务集合
 	@PostMapping("/getPersonalTaskListByAssignee")
 	public JsonResult<List<Map<String,Object>>> getPersonalTaskListByAssignee(@RequestParam(name = "userId",required = true) String userId,
-			@RequestParam(name = "processDefinitionKey",required = true) String processDefinitionKey) {
-		JsonResult<List<Map<String,Object>>> result = flowProcessQueryService.getPersonalTaskListByAssignee(userId, processDefinitionKey);
+			@RequestParam(name = "processDefinitionKey",required = true) String processDefinitionKey,
+			@RequestParam(name = "tenantId",required = true) String tenantId) {
+		JsonResult<List<Map<String,Object>>> result = flowProcessQueryService.getPersonalTaskListByAssignee(userId, processDefinitionKey,tenantId);
 		return result;
 	}
 	
@@ -219,6 +232,22 @@ public class FlowServiceController {
 	@PostMapping("/getHisActivityByProcessInstanceId")
 	public JsonResult<List<Map<String,Object>>> getHisActivityByProcessInstanceId(@RequestParam(name = "processInstanceId",required = true) String processInstanceId){
 		JsonResult<List<Map<String,Object>>> result = flowProcessQueryService.getHisActivityByProcessInstanceId(processInstanceId);
+		return result;
+	}
+	
+	//根据根据租户和流程定义获取全部任务
+	@PostMapping("/getAllTaskByTenantIdAndProcessDefinitionKey")
+	public JsonResult<List<Map<String,Object>>> getAllTaskByTenantIdAndProcessDefinitionKey(@RequestParam(name = "tenantId",required = true) String tenantId,
+			@RequestParam(name = "processDefinitionKey",required = true) String processDefinitionKey){
+		JsonResult<List<Map<String,Object>>> result = flowProcessQueryService.getAllTaskByTenantIdAndProcessDefinitionKey(tenantId,processDefinitionKey);
+		return result;
+	}
+	
+	//根据根据租户和流程定义获取全部任务
+	@PostMapping("/selectPersonalBacklogTaskCount")
+	public JsonResult<List<Map<String,Object>>> selectPersonalBacklogTaskCount(@RequestParam(name = "userId",required = true) String userId,
+			@RequestParam(name = "tenantId",required = true) String tenantId){
+		JsonResult<List<Map<String,Object>>> result = flowProcessQueryService.selectPersonalBacklogTaskCount(userId, tenantId);
 		return result;
 	}
 	

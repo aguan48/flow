@@ -8,6 +8,7 @@ import org.activiti.bpmn.model.FlowElement;
 import org.activiti.bpmn.model.UserTask;
 import org.activiti.editor.language.json.converter.BaseBpmnJsonConverter;
 import org.activiti.editor.language.json.converter.UserTaskJsonConverter;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -31,6 +32,7 @@ public class CustomUserTaskJsonConverter extends UserTaskJsonConverter implement
     protected void convertElementToJson(ObjectNode propertiesNode, BaseElement baseElement) {
         super.convertElementToJson(propertiesNode, baseElement);
         logger.info(baseElement.toString());
+        
     }
     
     @Override
@@ -50,7 +52,8 @@ public class CustomUserTaskJsonConverter extends UserTaskJsonConverter implement
         
         /**=============================================================================================================*/
         // 放入自定义属性中
-        userTask.getCustomProperties().add(customProperty);        
+        userTask.getCustomProperties().add(customProperty);
+        
         return userTask;
     }
     

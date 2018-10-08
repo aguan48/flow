@@ -138,7 +138,7 @@
 			                  	  if(value){
 			                  		return changeDateFormat(value);
 			                  	  }else{
-			                  		return "待签收...";
+			                  		return "-";
 			                  	  }
 			                  }
 			                },
@@ -178,7 +178,18 @@
 		    var hours = parseInt((mss % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 		    var minutes = parseInt((mss % (1000 * 60 * 60)) / (1000 * 60));
 		    var seconds = (mss % (1000 * 60)) / 1000;
-		    return days + " 天 " + hours + " 小时 " + minutes + " 分钟 " + seconds + " 秒 ";
+		    var r = "";
+		    if(days && days != 0){
+		    	r += dasy + "天";
+		    }
+		    if(days && days != 0){
+		    	r += hours + " 小时 ";
+		    }
+		    if(days && days != 0){
+		    	r += minutes + " 分钟 ";
+		    }
+		    r += seconds + "秒";
+		    return r;
 		}
 		
 	</script>

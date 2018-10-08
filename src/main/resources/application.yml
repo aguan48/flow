@@ -2,7 +2,7 @@
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://sinog2c:sinog2c@localhost:8761/eureka/
+      defaultZone: http://sinog2c:sinog2c@192.168.1.33:8761/eureka/
   instance:
     instance-id: ${spring.cloud.client.ipAddress}:${server.port}
     prefer-ip-address: true  
@@ -18,7 +18,7 @@ spring:
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://192.168.1.33:3306/sinog2c-base-system?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&useSSL=false
+    url: jdbc:mysql://192.168.1.33:3306/sinog2c_base_dev?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&useSSL=false
     username: root
     password: root
     initialSize: 5
@@ -53,9 +53,8 @@ spring:
     request-context-attribute: request
 # activiti 配置
   activiti: 
-    check-process-definitions: false
-    db-identity-used: false #设置数据库验证
-    history-level: full #设置流程引擎历史记录级别
+    check-process-definitions: false #自动部署验证设置
+
     
 # mybatis 路径映射
 mybatis:
@@ -64,4 +63,8 @@ mybatis:
   config-location: classpath:mybatis-config.xml
 
 #不拦截的url
-excludeList: /user/login,/user/logout,/error,/flowService,/test/testTransactional
+excludeList: /user/login,/user/logout,/error,/flowService,/test
+
+feign:
+  hystrix: 
+    enabled: true
