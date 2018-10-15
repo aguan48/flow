@@ -72,10 +72,10 @@ public class ActivitiUtil {
 			// 当前节点可编辑节点
 			String candealaipformnode = getCustomPropertyByName(CustomStencilConstants.PROPERTY_CANDEAL_AIPFORMNODE,processInstance,null,processEngine);
 			resultMap.put("candealaipformnode", candealaipformnode);
-			// 流程流转自定义记录
-			FlowProcInstRec recHis = flowProcInstRecMapper.selectLastFlowProcInstRecHisByProcessInstanceId(task.getProcessInstanceId());
-			resultMap.put("flowStatus", recHis.getFlowStatus());// 上一活动状态
-			resultMap.put("postilMessage", recHis.getPostilMessage());// 上一活动批注
+//			// 流程流转自定义记录
+//			FlowProcInstRec recHis = flowProcInstRecMapper.selectLastFlowProcInstRecHisByProcessInstanceId(task.getProcessInstanceId());
+//			resultMap.put("flowStatus", recHis.getFlowStatus());// 上一活动状态
+//			resultMap.put("postilMessage", recHis.getPostilMessage());// 上一活动批注
 			
 			//解析了常用的，如果使用时缺少，可以在此补充
 			

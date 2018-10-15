@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinog2c.flow.mapper.FlowStatusMapper">
+	
+	<insert id="insertFlowStatus" parameterType="com.sinog2c.flow.domain.FlowStatus">
+	
+		insert into t_flow_status
+			(processInstanceId,flowStatus,postilMessage,opid,optime)
+		values
+			(#{processInstanceId},#{flowStatus},#{postilMessage},#{opid},#{optime})
+			
+	</insert>
+	
+	<insert id="insertFlowStatusHis" parameterType="com.sinog2c.flow.domain.FlowStatus">
+	
+		insert into t_flow_status_his
+			(processInstanceId,flowStatus,postilMessage,opid,optime)
+		values
+			(#{processInstanceId},#{flowStatus},#{postilMessage},#{opid},#{optime})
+			
+	</insert>
+	
+	<update id="updateFlowStatus" parameterType="com.sinog2c.flow.domain.FlowStatus">
+	
+		update t_flow_status
+		<set>
+			<if test="flowStatus != null">
+				flowStatus = #{flowStatus},
+			</if>
+			<if test="postilMessage != null">
+				postilMessage = #{postilMessage},
+			</if>
+			<if test="opid != null">
+				opid = #{opid},
+			</if>
+		</set>
+		where processInstanceId = #{processInstanceId}
+		
+	</update>
+	
+	<select id="selectFlowStatusByProcessInstanceId" parameterType="String" resultType="com.sinog2c.flow.domain.FlowStatus">
+		select * from t_flow_status
+		where processInstanceId = #{processInstanceId} 
+	</select>
+	
+</mapper>
