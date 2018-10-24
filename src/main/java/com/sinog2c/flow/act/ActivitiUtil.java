@@ -22,9 +22,7 @@ import org.activiti.engine.task.Comment;
 import org.activiti.engine.task.Task;
 import org.apache.commons.lang.StringUtils;
 
-import com.sinog2c.flow.domain.FlowProcInstRec;
 import com.sinog2c.flow.domain.HistoricActivityInstanceResponse;
-import com.sinog2c.flow.mapper.FlowProcInstRecMapper;
 
 /**
  * Activiti 流程引擎相关工具类
@@ -47,35 +45,43 @@ public class ActivitiUtil {
 	 * 响应：			resultList				任务集合Map
 	 * 
 	 *************************************************************************************************************************************/
-	public static List<Map<String,Object>> parseListTask2ListMap(List<Task> list,ProcessEngine processEngine,
-			FlowProcInstRecMapper flowProcInstRecMapper) throws Exception{
-		RuntimeService runtimeService = processEngine.getRuntimeService();/**提供流程文件和流程实例的方法 */
+	public static List<Map<String,Object>> parseListTask2ListMap(List<Task> list,ProcessEngine processEngine) throws Exception{
+		/**提供流程文件和流程实例的方法 */
+		RuntimeService runtimeService = processEngine.getRuntimeService();
 		
 		
 		List<Map<String,Object>> resultList = new ArrayList<Map<String,Object>>();
 		for(Task task : list) {
-			Map<String,Object> resultMap = new HashMap<String,Object>();
-			resultMap.put("taskId", task.getId());//taskId
-			resultMap.put("processInstanceId", task.getProcessInstanceId());//流程实例ID
-			resultMap.put("createTime", task.getCreateTime());//创建时间
-			resultMap.put("processVariables", task.getProcessVariables());//流程变量
-			resultMap.put("assignee", task.getAssignee());//代理人
-			resultMap.put("name", task.getName());//name
-			resultMap.put("desctiption", task.getDescription());//描述
-			resultMap.put("processDefinitionId", task.getProcessDefinitionId());//流程定义ID
-			resultMap.put("delegationState", task.getDelegationState());//委派状态
-			resultMap.put("tenantId", task.getTenantId());//所属系统标识
+			Map<String,Object> resultMap = new HashMap<String,Object>(16);
+			// taskId
+			resultMap.put("taskId", task.getId());
+			// 流程实例ID
+			resultMap.put("processInstanceId", task.getProcessInstanceId());
+			// 创建时间
+			resultMap.put("createTime", task.getCreateTime());
+			// 流程变量
+			resultMap.put("processVariables", task.getProcessVariables());
+			// 代理人
+			resultMap.put("assignee", task.getAssignee());
+			//name
+			resultMap.put("name", task.getName());
+			//描述
+			resultMap.put("desctiption", task.getDescription());
+			//流程定义ID
+			resultMap.put("processDefinitionId", task.getProcessDefinitionId());
+			//委派状态
+			resultMap.put("delegationState", task.getDelegationState());
+			//所属系统标识
+			resultMap.put("tenantId", task.getTenantId());
 			//流程实例
 			ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().processInstanceId(task.getProcessInstanceId()).singleResult();
-			resultMap.put("businessKey", processInstance.getBusinessKey());//业务主键
-			resultMap.put("processDefinitionName", processInstance.getProcessDefinitionName());// 流程定义名称
+			//业务主键
+			resultMap.put("businessKey", processInstance.getBusinessKey());
+			// 流程定义名称
+			resultMap.put("processDefinitionName", processInstance.getProcessDefinitionName());
 			// 当前节点可编辑节点
 			String candealaipformnode = getCustomPropertyByName(CustomStencilConstants.PROPERTY_CANDEAL_AIPFORMNODE,processInstance,null,processEngine);
 			resultMap.put("candealaipformnode", candealaipformnode);
-//			// 流程流转自定义记录
-//			FlowProcInstRec recHis = flowProcInstRecMapper.selectLastFlowProcInstRecHisByProcessInstanceId(task.getProcessInstanceId());
-//			resultMap.put("flowStatus", recHis.getFlowStatus());// 上一活动状态
-//			resultMap.put("postilMessage", recHis.getPostilMessage());// 上一活动批注
 			
 			//解析了常用的，如果使用时缺少，可以在此补充
 			
@@ -105,19 +111,28 @@ public class ActivitiUtil {
 			// 本地类实体转换
 			HistoricActivityInstanceResponse historicActivityInstance = new HistoricActivityInstanceResponse(his);
 			
-			Map<String,Object> resultMap = new HashMap<String,Object>();
+			Map<String,Object> resultMap = new HashMap<String,Object>(16);
 			postilMessage = "";
 			
 			resultMap.put("id", historicActivityInstance.getId());
-			resultMap.put("activityId", historicActivityInstance.getActivityId());// 活动ID
-			resultMap.put("activityName", historicActivityInstance.getActivityName());	//活动名称		
-			resultMap.put("activityType", historicActivityInstance.getActivityType());  //活动类型
-			resultMap.put("assignee", historicActivityInstance.getAssignee());  //办理人
-			resultMap.put("startTime", historicActivityInstance.getStartTime());  //开始时间
-			resultMap.put("endTime", historicActivityInstance.getEndTime());  //结束时间
-			resultMap.put("time", historicActivityInstance.getTime());  //time
-			resultMap.put("tenantId", historicActivityInstance.getTenantId()); //tenantId所属系统租户
-			resultMap.put("processInstanceId", historicActivityInstance.getProcessInstanceId()); // 流程实例
+			// 活动ID
+			resultMap.put("activityId", historicActivityInstance.getActivityId());
+			//活动名称		
+			resultMap.put("activityName", historicActivityInstance.getActivityName());
+			//活动类型
+			resultMap.put("activityType", historicActivityInstance.getActivityType()); 
+			//办理人
+			resultMap.put("assignee", historicActivityInstance.getAssignee()); 
+			//开始时间
+			resultMap.put("startTime", historicActivityInstance.getStartTime());  
+			//结束时间
+			resultMap.put("endTime", historicActivityInstance.getEndTime());
+			//time
+			resultMap.put("time", historicActivityInstance.getTime()); 
+			//tenantId所属系统租户
+			resultMap.put("tenantId", historicActivityInstance.getTenantId()); 
+			// 流程实例
+			resultMap.put("processInstanceId", historicActivityInstance.getProcessInstanceId()); 
 			//处理批注信息
 			String taskId = historicActivityInstance.getTaskId();
 			List<Comment> commentsList = taskService.getTaskComments(taskId);
@@ -139,12 +154,15 @@ public class ActivitiUtil {
 	 * 
 	 *************************************************************************************************************************************/
 	public static Map<String,Object> dealQueryListParam(HttpServletRequest request){
-		Map<String, Object> param = new HashMap<String, Object>();
+		Map<String, Object> param = new HashMap<String, Object>(16);
 		Integer limit = request.getParameter("limit") == null ? 20 : Integer.parseInt(request.getParameter("limit"));
 		Integer offset = request.getParameter("offset") == null ? 0 : Integer.parseInt(request.getParameter("offset"));
-		String sort = request.getParameter("sort") == null ? "" : request.getParameter("sort"); //排序字段
-		String order = request.getParameter("order") == null ? "" : request.getParameter("order"); //排序方式
-		String search = request.getParameter("search") == null ? "" : request.getParameter("search"); //排序方式
+		//排序字段
+		String sort = request.getParameter("sort") == null ? "" : request.getParameter("sort"); 
+		//排序方式
+		String order = request.getParameter("order") == null ? "" : request.getParameter("order");
+		//排序方式
+		String search = request.getParameter("search") == null ? "" : request.getParameter("search"); 
 		param.put("offset", offset);
 		param.put("limit", limit);
 		param.put("sort", sort);

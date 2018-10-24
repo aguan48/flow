@@ -3,6 +3,14 @@ package com.sinog2c.flow.util;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+/**
+ * 
+* @ClassName:：PasswordUtil 
+* @Description： TODO
+* @author ：xujie 
+* @date ：2018年10月23日 下午8:42:29 
+*
+ */
 public class PasswordUtil {
 	
 	/**
@@ -27,10 +35,12 @@ public class PasswordUtil {
 			StringBuilder builder = new StringBuilder(32);
 			for (int offset = 0; offset < b.length; offset++) {
 				i = b[offset];
-				if (i < 0)
+				if (i < 0) {
 					i += 256;
-				if (i < 16)
+				}
+				if (i < 16) {
 					builder.append("0");
+				}
 				builder.append(Integer.toHexString(i));
 			}
 			MD5Str = builder.toString();

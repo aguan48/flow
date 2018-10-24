@@ -11,7 +11,6 @@ import org.activiti.engine.repository.Model;
 import org.activiti.engine.repository.ModelQuery;
 import org.activiti.engine.repository.ProcessDefinitionQuery;
 
-import com.sinog2c.flow.domain.HistoricActivityInstanceResponse;
 import com.sinog2c.flow.domain.HistoricProcessInstanceResponse;
 import com.sinog2c.flow.domain.HistoricTaskInstanceResponse;
 import com.sinog2c.flow.domain.HistoricVariableInstanceResponse;

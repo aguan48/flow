@@ -11,6 +11,9 @@ public class FlowStatus {
 	private String processInstanceId;
 	private String flowStatus;
 	private String postilMessage;
+	private String candealaipformnode;
+	private String applyid;
+	private String applyname;
 	private String opid;
 	private Date optime;
 	
@@ -45,6 +48,39 @@ public class FlowStatus {
 		this.optime = optime;
 	}
 	
+	public String getCandealaipformnode() {
+		return candealaipformnode;
+	}
+	public void setCandealaipformnode(String candealaipformnode) {
+		this.candealaipformnode = candealaipformnode;
+	}
+	public String getApplyid() {
+		return applyid;
+	}
+	public void setApplyid(String applyid) {
+		this.applyid = applyid;
+	}
+	public String getApplyname() {
+		return applyname;
+	}
+	public void setApplyname(String applyname) {
+		this.applyname = applyname;
+	}
+	
+	
+	
+	public FlowStatus(String processInstanceId, String flowStatus, String postilMessage, String candealaipformnode,
+			String applyid, String applyname, String opid, Date optime) {
+		super();
+		this.processInstanceId = processInstanceId;
+		this.flowStatus = flowStatus;
+		this.postilMessage = postilMessage;
+		this.candealaipformnode = candealaipformnode;
+		this.applyid = applyid;
+		this.applyname = applyname;
+		this.opid = opid;
+		this.optime = optime;
+	}
 	public FlowStatus(String processInstanceId, String flowStatus, String postilMessage, String opid, Date optime) {
 		super();
 		this.processInstanceId = processInstanceId;
@@ -56,7 +92,8 @@ public class FlowStatus {
 	@Override
 	public String toString() {
 		return "FlowStatus [processInstanceId=" + processInstanceId + ", flowStatus=" + flowStatus + ", postilMessage="
-				+ postilMessage + ", opid=" + opid + ", optime=" + optime + "]";
+				+ postilMessage + ", candealaipformnode=" + candealaipformnode + ", applyid=" + applyid + ", applyname="
+				+ applyname + ", opid=" + opid + ", optime=" + optime + "]";
 	}
 	
 	

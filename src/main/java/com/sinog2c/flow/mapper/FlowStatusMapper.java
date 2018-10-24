@@ -1,5 +1,7 @@
 package com.sinog2c.flow.mapper;
 
+import java.util.Map;
+
 import org.apache.ibatis.annotations.Mapper;
 
 import com.sinog2c.flow.domain.FlowStatus;
@@ -15,4 +17,7 @@ public interface FlowStatusMapper {
 	
 	FlowStatus selectFlowStatusByProcessInstanceId(String processInstanceId);
 	
+	int selectPersonalBacklogTaskCount(Map<String,String> map);
+	
+	int selectGroupBacklogTaskCount(Map<String,String> map);
 }

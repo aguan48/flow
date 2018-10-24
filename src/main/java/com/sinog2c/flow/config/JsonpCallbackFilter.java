@@ -17,22 +17,34 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 
+* @ClassName:：JsonpCallbackFilter 
+* @Description： TODO
+* @author ：gxx  
+* @date ：2018年10月23日 下午8:35:07 
+*
+ */
 public class JsonpCallbackFilter implements Filter {
+	
+	private static final String callback = "callback";
 
   private static Logger log = LoggerFactory.getLogger(JsonpCallbackFilter.class);
 
+  @Override
   public void init(FilterConfig fConfig) throws ServletException {}
 
+  @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
     HttpServletRequest httpRequest = (HttpServletRequest) request;
     HttpServletResponse httpResponse = (HttpServletResponse) response;
 
     Map<String, String[]> parms = httpRequest.getParameterMap();
 
-    if (parms.containsKey("callback")) {
-      if (log.isDebugEnabled())
+    if (parms.containsKey(callback)) {
+      if (log.isDebugEnabled()) {
           log.debug("Wrapping response with JSONP callback '" + parms.get("callback")[0] + "'");
-
+      }
       OutputStream out = httpResponse.getOutputStream();
 
       GenericResponseWrapper wrapper = new GenericResponseWrapper(httpResponse);
@@ -58,5 +70,6 @@ public class JsonpCallbackFilter implements Filter {
     }
   }
 
+  @Override
   public void destroy() {}
 }

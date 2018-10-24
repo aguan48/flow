@@ -1,13 +1,7 @@
 package com.sinog2c.flow.controller;
 
-import java.util.List;
-import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-
-import org.activiti.engine.repository.Model;
-import org.activiti.engine.repository.ModelQuery;
 
 import com.sinog2c.flow.domain.User;
 

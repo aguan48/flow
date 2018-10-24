@@ -18,8 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.sinog2c.flow.act.ActivitiUtil;
-import com.sinog2c.flow.domain.HistoricActivityInstanceResponse;
-import com.sinog2c.flow.mapper.FlowProcInstRecMapper;
+import com.sinog2c.flow.mapper.FlowStatusMapper;
 import com.sinog2c.flow.mapper.UserMapper;
 import com.sinog2c.flow.service.FlowProcessQueryService;
 import com.sinog2c.flow.util.JsonResult;
@@ -61,7 +60,7 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 	private UserMapper userMapper;
 	
 	@Autowired
-	private FlowProcInstRecMapper flowProcInstRecMapper;
+	private FlowStatusMapper flowStatusMapper;
 
 	
 	/*********************************************************************************************************************************************
@@ -74,10 +73,8 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 	@Override
 	public JsonResult<List<Map<String, Object>>> getPersonalTaskListByAssignee(String userId,
 			String tenantId) {
-		// TODO Auto-generated method stub
 		logger.info("======================[根据userId获取任务集合]方法名：getTaskListByAssignee[开始执行]=====================");
 		List<Map<String,Object>> resultList = new ArrayList<Map<String,Object>>();
-		
 		if(StringUtils.isEmpty(userId)) {
 			return JsonResult.failMessage("用户编号不能为空！");
 		}else {
@@ -86,7 +83,7 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 				List<Task> tasksList = taskService.createTaskQuery().taskAssignee(userId).taskTenantId(tenantId)
 						.orderByTaskCreateTime().desc().list();
 				if(tasksList != null || tasksList.size() > 0) {
-					resultList = ActivitiUtil.parseListTask2ListMap(tasksList,processEngine,flowProcInstRecMapper);
+					resultList = ActivitiUtil.parseListTask2ListMap(tasksList,processEngine);
 				}
 				return JsonResult.success(resultList);
 			} catch (Exception e) {
@@ -108,10 +105,8 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 	public JsonResult<List<Map<String, Object>>> getPersonalTaskListByAssignee(String userId, 
 			String processDefinitionKey,
 			String tenantId) {
-		// TODO Auto-generated method stub
 		logger.info("======================[根据userId获取任务集合]方法名：getTaskListByAssignee[开始执行]=====================");
 		List<Map<String,Object>> resultList = new ArrayList<Map<String,Object>>();
-		
 		if(StringUtils.isEmpty(userId) || StringUtils.isEmpty(processDefinitionKey)) {
 			return JsonResult.failMessage("userId和processDefinitionKey均不能为空！");
 		}else {
@@ -120,7 +115,7 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 				List<Task> tasksList = taskService.createTaskQuery().taskAssignee(userId).taskTenantId(tenantId)
 						.processDefinitionKey(processDefinitionKey).orderByTaskCreateTime().desc().list();
 				if(tasksList != null || tasksList.size() > 0) {
-					resultList = ActivitiUtil.parseListTask2ListMap(tasksList,processEngine,flowProcInstRecMapper);
+					resultList = ActivitiUtil.parseListTask2ListMap(tasksList,processEngine);
 				}
 				return JsonResult.success(resultList);
 			} catch (Exception e) {
@@ -139,7 +134,6 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 	 ********************************************************************************************************************************************/
 	@Override
 	public JsonResult<List<Map<String, Object>>> getGroupTaskListByGroupId(String groupId) {
-		// TODO Auto-generated method stub
 		logger.info("======================[根据groupId获取组任务集合]方法名：getGroupListByGroupId[开始执行]=====================");
 		List<Map<String,Object>> resultList = new ArrayList<Map<String,Object>>();
 		if(StringUtils.isEmpty(groupId)) {
@@ -151,11 +145,10 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 				List<Task> tasksList = taskService.createTaskQuery().taskCandidateGroup(groupId)
 						.orderByTaskCreateTime().desc().list();
 				if(tasksList != null || tasksList.size() > 0) {
-					resultList = ActivitiUtil.parseListTask2ListMap(tasksList,processEngine,flowProcInstRecMapper);
+					resultList = ActivitiUtil.parseListTask2ListMap(tasksList,processEngine);
 				}
 				return JsonResult.success(resultList);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				logger.error("======================[根据groupId获取组任务集合]方法名：getGroupListByGroupId[获取任务集合调用API异常]=====================");
 				return JsonResult.failMessage("获取任务集合调用API异常");
@@ -171,7 +164,6 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 	 ********************************************************************************************************************************************/
 	@Override
 	public JsonResult<List<Map<String, Object>>> getGroupTaskListByGroupId(String groupId, String processDefinitionKey) {
-		// TODO Auto-generated method stub
 		logger.info("======================[根据groupId获取组任务集合]方法名：getGroupListByGroupId[开始执行]=====================");
 		List<Map<String,Object>> resultList = new ArrayList<Map<String,Object>>();
 		if(StringUtils.isEmpty(groupId) || StringUtils.isEmpty(processDefinitionKey)) {
@@ -183,11 +175,10 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 				List<Task> tasksList = taskService.createTaskQuery().taskCandidateGroup(groupId)
 						.processDefinitionKey(processDefinitionKey).orderByTaskCreateTime().desc().list();
 				if(tasksList != null || tasksList.size() > 0) {
-					resultList = ActivitiUtil.parseListTask2ListMap(tasksList,processEngine,flowProcInstRecMapper);
+					resultList = ActivitiUtil.parseListTask2ListMap(tasksList,processEngine);
 				}
 				return JsonResult.success(resultList);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				logger.error("======================[根据groupId获取组任务集合]方法名：getGroupListByGroupId[获取任务集合调用API异常]=====================");
 				return JsonResult.failMessage("获取任务集合调用API异常");
@@ -205,10 +196,8 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 	@Override
 	public JsonResult<List<Map<String, Object>>> getPersonalTaskListByAssigneeAndTenantId(String userId,
 			String tenantId) {
-		// TODO Auto-generated method stub
 		logger.info("======================[根据userId获取任务集合]方法名：getTaskListByAssignee[开始执行]=====================");
 		List<Map<String,Object>> resultList = new ArrayList<Map<String,Object>>();
-		
 		if(StringUtils.isEmpty(userId)) {
 			return JsonResult.failMessage("用户编号不能为空！");
 		}else {
@@ -217,7 +206,7 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 				List<Task> tasksList = taskService.createTaskQuery().taskAssignee(userId).taskTenantId(tenantId)
 						.orderByTaskCreateTime().desc().list();
 				if(tasksList != null || tasksList.size() > 0) {
-					resultList = ActivitiUtil.parseListTask2ListMap(tasksList,processEngine,flowProcInstRecMapper);
+					resultList = ActivitiUtil.parseListTask2ListMap(tasksList,processEngine);
 				}
 				return JsonResult.success(resultList);
 			} catch (Exception e) {
@@ -239,10 +228,8 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 	@Override
 	public JsonResult<List<Map<String, Object>>> getPersonalTaskListByAssigneeAndTenantId(String userId,
 			String tenantId, String processDefinitionKey) {
-		// TODO Auto-generated method stub
 		logger.info("======================[根据userId获取任务集合]方法名：getTaskListByAssignee[开始执行]=====================");
 		List<Map<String,Object>> resultList = new ArrayList<Map<String,Object>>();
-		
 		if(StringUtils.isEmpty(userId) || StringUtils.isEmpty(processDefinitionKey)) {
 			return JsonResult.failMessage("userId和processDefinitionKey均不能为空！");
 		}else {
@@ -251,7 +238,7 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 				List<Task> tasksList = taskService.createTaskQuery().taskAssignee(userId).taskTenantId(tenantId)
 						.processDefinitionKey(processDefinitionKey).orderByTaskCreateTime().desc().list();
 				if(tasksList != null || tasksList.size() > 0) {
-					resultList = ActivitiUtil.parseListTask2ListMap(tasksList,processEngine,flowProcInstRecMapper);
+					resultList = ActivitiUtil.parseListTask2ListMap(tasksList,processEngine);
 				}
 				return JsonResult.success(resultList);
 			} catch (Exception e) {
@@ -271,7 +258,6 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 	 */
 	@Override
 	public JsonResult<List<Map<String, Object>>> getGroupTaskListByAssigneeAndTenantId(String userId, String tenantId) {
-		// TODO Auto-generated method stub
 		logger.info("=============[根据userId和系统代码Id获取用户本系统所在的组所有流程的组任务]方法名：getGroupTaskListByAssigneeAndTenantId[开始执行]============");
 		if(StringUtils.isEmpty(tenantId)) {
 			return JsonResult.failMessage("tenantId系统标识不能为空");
@@ -303,7 +289,6 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 				}
 				return JsonResult.success(taskLists);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				logger.info("=====[根据userId和系统代码Id获取用户本系统所在的组所有流程的组任务]方法名：getGroupTaskListByAssigneeAndTenantId[调用接口异常]====");
 				return JsonResult.failMessage("调用查询接口异常");
@@ -322,7 +307,6 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 	@Override
 	public JsonResult<List<Map<String, Object>>> getGroupTaskListByAssigneeAndTenantId(String userId, String tenantId,
 			String processDefinitionKey) {
-		// TODO Auto-generated method stub
 		logger.info("=============[根据userId和系统代码Id获取用户本系统所在的组processDefinitionKey流程的组任务]方法名：getGroupTaskListByAssigneeAndTenantId[开始执行]============");
 		if(StringUtils.isEmpty(tenantId)) {
 			return JsonResult.failMessage("tenantId系统标识不能为空");
@@ -349,7 +333,6 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 				}
 				return JsonResult.success(taskLists);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				logger.info("=====[根据userId和系统代码Id获取用户本系统所在的组所有流程的组任务]方法名：getGroupTaskListByAssigneeAndTenantId[调用接口异常]====");
 				return JsonResult.failMessage("调用查询接口异常");
@@ -359,25 +342,25 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 
 	/**
 	 * 根据流程实例Id：processInstanceId获取历史活动
-	 * 
 	 * @param processInstanceId			流程实例编号
 	 * @return
 	 */
 	@Override
 	public JsonResult<List<Map<String, Object>>> getHisActivityByProcessInstanceId(String processInstanceId) {
-		// TODO Auto-generated method stub
 		//活动查询
 		try {
-			List<HistoricActivityInstance>  list= historyService // 历史相关Service
-			        .createHistoricActivityInstanceQuery() // 创建历史活动实例查询
-			        .processInstanceId(processInstanceId) // 执行流程实例id
-			        .orderByHistoricActivityInstanceStartTime().desc() //开始时间倒序
+			// 历史相关Service
+			// 创建历史活动实例查询
+			// 执行流程实例id
+			//开始时间倒序
+			List<HistoricActivityInstance>  list= historyService 
+			        .createHistoricActivityInstanceQuery() 
+			        .processInstanceId(processInstanceId) 
+			        .orderByHistoricActivityInstanceStartTime().desc() 
 			        .list();
-			
 			List<Map<String,Object>> data = ActivitiUtil.parseListHistoricActivityInstance2ListMap(list,processEngine);
 			return JsonResult.success(data);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			logger.info("=====[根据流程实例Id：processInstanceId获取历史活动]方法名：getHisActivityByProcessInstanceId[调用接口异常]====");
 			return JsonResult.failMessage("调用查询接口getHisActivityByProcessInstanceId异常");
@@ -386,32 +369,35 @@ public class FlowProcessQueryServiceImpl implements FlowProcessQueryService{
 
 	@Override
 	public JsonResult<List<Map<String, Object>>> getAllTaskByTenantIdAndProcessDefinitionKey(String tenantId,String processDefinitionKey) {
-		// TODO Auto-generated method stub
 		List<Map<String,Object>> resultList = new ArrayList<Map<String,Object>>();
 		try {
-			List<Task> tasksList = taskService.createTaskQuery().processDefinitionKey(processDefinitionKey).taskTenantId(tenantId)
-					.list();
-			
+			List<Task> tasksList = taskService.createTaskQuery().processDefinitionKey(processDefinitionKey).taskTenantId(tenantId).list();
 			if(tasksList != null || tasksList.size() > 0) {
-				resultList = ActivitiUtil.parseListTask2ListMap(tasksList,processEngine,flowProcInstRecMapper);
+				resultList = ActivitiUtil.parseListTask2ListMap(tasksList,processEngine);
 			}
 			return JsonResult.success(resultList);
-			
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return JsonResult.failMessage("调用查询接口getAllTaskByTenantIdAndProcessDefinitionKey异常");
 		}
 	}
 
 	@Override
-	public JsonResult<List<Map<String, Object>>> selectPersonalBacklogTaskCount(String userId, String tenantId) {
-		// TODO Auto-generated method stub
-		Map<String,String> param = new HashMap<String,String>();
+	public JsonResult<Integer> selectPersonalBacklogTaskCount(String userId, String tenantId) {
+		Map<String,String> param = new HashMap<String,String>(16);
 		param.put("userId", userId);
 		param.put("tenantId", tenantId);
-		List<Map<String, Object>> list = flowProcInstRecMapper.selectPersonalBacklogTaskCount(param);
-		return JsonResult.success(list);
+		int total = flowStatusMapper.selectPersonalBacklogTaskCount(param);
+		return JsonResult.success(total);
+	}
+
+	@Override
+	public JsonResult<Integer> selectGroupBacklogTaskCount(String groupIds, String tenantId) {
+		Map<String,String> param = new HashMap<String,String>(16);
+		param.put("groupIds", groupIds);
+		param.put("tenantId", tenantId);
+		int total = flowStatusMapper.selectGroupBacklogTaskCount(param);
+		return JsonResult.success(total);
 	}
 	
 

@@ -9,7 +9,6 @@ import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 
 import org.activiti.bpmn.model.BpmnModel;
-import org.activiti.engine.HistoryService;
 import org.activiti.engine.ProcessEngine;
 import org.activiti.engine.ProcessEngineConfiguration;
 import org.activiti.engine.RepositoryService;
@@ -58,28 +57,18 @@ public class FlowServiceController {
 	@Autowired
 	private RepositoryService repositoryService;
 	
-	/**流程、变量历史*/
-	@Autowired
-	private HistoryService historyService;
-	
 	@Autowired
 	private FlowProcessCoreService flowProcessCoreService;
 	
 	@Autowired
 	private FlowProcessQueryService flowProcessQueryService;
 	
-	//启动（开启多个流程）businessKeys由businessKey拼接，分隔符英文逗号
+	//启动（开启多个流程）
 	@PostMapping("/startFlowProcess")
-	public JsonResult<?> startFlowProcess(@RequestParam(name = "processDefinitionKey",required = true) String processDefinitionKey,
-			@RequestParam(name = "tenantId",required = true) String tenantId,
-			@RequestParam(name = "businessKeys",required = true) String businessKeys,
-			@RequestParam(name = "userId",required = true) String userId,
-			@RequestBody(required = false) Map<String,Object> variables
-			) {
-		
+	public JsonResult<?> startFlowProcess(@RequestBody(required = true) Map<String,Object> variables) {
 		JsonResult<?> result = JsonResult.failMessage("启动流程异常");
 		try {
-			result = flowProcessCoreService.startFlowProcess(processDefinitionKey, tenantId, variables, businessKeys,userId);
+			result = flowProcessCoreService.startFlowProcess(variables);
 			return result;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -243,13 +232,22 @@ public class FlowServiceController {
 		return result;
 	}
 	
-	//根据根据租户和流程定义获取全部任务
+	//根据根据租户和用户获取全部个人任务数量
 	@PostMapping("/selectPersonalBacklogTaskCount")
-	public JsonResult<List<Map<String,Object>>> selectPersonalBacklogTaskCount(@RequestParam(name = "userId",required = true) String userId,
+	public JsonResult<Integer> selectPersonalBacklogTaskCount(@RequestParam(name = "userId",required = true) String userId,
 			@RequestParam(name = "tenantId",required = true) String tenantId){
-		JsonResult<List<Map<String,Object>>> result = flowProcessQueryService.selectPersonalBacklogTaskCount(userId, tenantId);
+		JsonResult<Integer> result = flowProcessQueryService.selectPersonalBacklogTaskCount(userId, tenantId);
 		return result;
 	}
+	
+	//根据根据租户和组编号groupIds获取全部组任务数量
+	@PostMapping("/selectGroupBacklogTaskCount")
+	public JsonResult<Integer> selectGroupBacklogTaskCount(@RequestParam(name = "groupIds",required = true) String groupIds,
+			@RequestParam(name = "tenantId",required = true) String tenantId){
+		JsonResult<Integer> result = flowProcessQueryService.selectGroupBacklogTaskCount(groupIds, tenantId);
+		return result;
+	}	
+	
 	
 	
 	/**

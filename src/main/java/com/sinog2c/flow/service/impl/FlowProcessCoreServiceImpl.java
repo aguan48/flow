@@ -14,7 +14,6 @@ import org.activiti.bpmn.model.FlowElement;
 import org.activiti.engine.FormService;
 import org.activiti.engine.HistoryService;
 import org.activiti.engine.IdentityService;
-import org.activiti.engine.ProcessEngine;
 import org.activiti.engine.RepositoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
@@ -37,6 +36,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.sinog2c.flow.act.CustomStencilConstants;
 import com.sinog2c.flow.config.IDGenerator;
 import com.sinog2c.flow.domain.FlowStatus;
 import com.sinog2c.flow.mapper.FlowStatusMapper;
@@ -48,7 +48,7 @@ import com.sinog2c.flow.util.JsonResult;
  * Activiti流程引擎【流程流转】核心服务
  * 
 * @ClassName:：ActivitiCoreServiceImpl 
-* @Description： TODO
+* @Description： 流程流转
 * @author ：gxx  
 * @date ：2018年8月28日 上午11:47:17 
 *
@@ -58,10 +58,6 @@ import com.sinog2c.flow.util.JsonResult;
 public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 		
 	private static final Logger logger = Logger.getLogger(FlowProcessCoreServiceImpl.class);
-	
-	/** 注入流程引擎*/
-	@Autowired
-    private ProcessEngine processEngine;
 	
 	/**提供流程文件和流程实例的方法 */
 	@Autowired
@@ -92,57 +88,67 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 	@Autowired
 	private IdentityService identityService;
 	
-	
-	
+	private final String userTask = "userTask";
+	private static final String END = "END";
 	
 	
 	
 	/*********************************************************************************************************************************************
 	 * 启动一个或多个流程
-	 * 
+	 * variables包括processDefinitionKey、tenantId、userId
 	 * @param processDefinitionKey		流程定义key
 	 * @param tenantId					系统ID
 	 * @param variables					流程变量
 	 * @param businessKeys				业务主键以英文逗号,分隔
+	 * @param userId					用户编号
 	 * @return
 	 ********************************************************************************************************************************************/
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED,isolation = Isolation.DEFAULT,timeout=60000,rollbackFor=Exception.class)
-	public JsonResult<String> startFlowProcess(String processDefinitionKey,
-			String tenantId, 
-			Map<String, Object> variables,
-			String businessKeys,
-			String userId) 
+	public JsonResult<String> startFlowProcess(Map<String,Object> variables) 
 			throws Exception{
 		
-		logger.info("======================开始启动一个流程=====================");
-		if(StringUtils.isAnyEmpty(processDefinitionKey,tenantId,businessKeys,userId)) {
+		logger.info("======================开始启动流程=====================");
+		String processDefinitionKey = (String)variables.get("processDefinitionKey");
+		String tenantId = (String)variables.get("tenantId");
+		List<Map<String,String>> businessList = (List<Map<String,String>>)variables.get("businessList");
+		String userId = (String)variables.get("userId");
+		variables.remove("processDefinitionKey");
+		variables.remove("tenantId");
+		variables.remove("businessList");
+		variables.remove("userId");
+		
+		if(StringUtils.isAnyEmpty(processDefinitionKey,tenantId,userId) && businessList.size()>0) {
 			String errorInfo = "启动失败：缺少参数！";
 			errorInfo  += "[processDefinitionKey="+processDefinitionKey;
 			errorInfo  += ",tenantId="+tenantId;
-			errorInfo  += ",businessKeys="+businessKeys;
+			errorInfo  += ",businessList="+businessList.toString();
 			errorInfo  += ",userId="+userId + "]";
 			logger.info(errorInfo);
 			return JsonResult.failMessage(errorInfo);
 		}
-		/**流程变量，第一级流程节点为个人任务节点*/
-		if(variables == null) {
-		variables = new HashMap<String,Object>();}
+		
+		/**流程变量传递办理人，第一级流程节点为个人任务节点*/
 		variables.put("startUserId", userId);
 		
-		/**解析需要启动绑定的的业务主键*/
-		String businessKeysC[] = businessKeys.split(",");
-		for (String businessKey : businessKeysC) {
+		for (Map<String, String> map : businessList) {
+			String businessKey = map.get("businessKey");
+			String applyid = map.get("applyid");
+			String applyname = map.get("applyname");
 			/** 设置发起人*/
 			identityService.setAuthenticatedUserId(userId);
 			/**根据流程定义ID启动流程*/
 			ProcessInstance processInstance = runtimeService.startProcessInstanceByKeyAndTenantId(processDefinitionKey, businessKey, variables, tenantId);
 			String processInstanceId = processInstance.getId();
 			
-			FlowStatus flowStatus = new FlowStatus(processInstanceId,Constant.flow_start,"启动流程",userId,new Date());
+			/**记录状态*/
+			// 当前节点可编辑节点
+			String candealaipformnode = getCustomPropertyByName(CustomStencilConstants.PROPERTY_CANDEAL_AIPFORMNODE,processInstance,null);
+			FlowStatus flowStatus = new FlowStatus(processInstanceId,Constant.flow_start,"启动流程",candealaipformnode,applyid,applyname,userId,new Date());
 			flowStatusMapper.insertFlowStatus(flowStatus);
 			flowStatusMapper.insertFlowStatusHis(flowStatus);
 		}
+		
 		logger.info("======================启动成功=====================");
 		return JsonResult.success("启动成功");
 	}
@@ -180,18 +186,20 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 		
 		/** 流程变量为空，初始化 */
 		if( variables == null ) {
-			variables = new HashMap<String,Object>();}
+			variables = new HashMap<String,Object>(16);
+		}
 		
 		/**任务循环退回操作*/
-		String taskIdsC[] = taskIds.split(",");
+		String[] taskIdsC = taskIds.split(",");
 		for (String taskId : taskIdsC) {
 			/**添加批注信息*/
 			addProcessPostil(taskId,postilMessage);
 			Task task = this.findTaskById(taskId);
 			String processInstanceId = task.getProcessInstanceId();
+			ProcessInstance processInstance = findProcessInstanceByTaskId(taskId);
 			/**获取可以退回的的任务节点*/
 			List<ActivityImpl> activityList = this.findBackAvtivity(taskId);
-			if( activityList == null || !(activityList.size() > 0 )) {
+			if( activityList == null || activityList.size() <= 0 ) {
 				logger.error("==============================[流程退回操作]方法名：backFlowProcess[没有检测到可退回的节点！]==========================");
 				throw new Exception("没有检测到可退回的节点");
 			}
@@ -203,11 +211,13 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 			this.autoClaimTaskAfterBackTask(activityId,processInstanceId);
 			
 			/**更新状态*/
+			String candealaipformnode = getCustomPropertyByName(CustomStencilConstants.PROPERTY_CANDEAL_AIPFORMNODE,processInstance,activityId);
 			FlowStatus flowStatus = flowStatusMapper.selectFlowStatusByProcessInstanceId(processInstanceId);
 			flowStatus.setFlowStatus(Constant.flow_back);
 			flowStatus.setOpid(userId);
 			flowStatus.setOptime(new Date());
 			flowStatus.setPostilMessage(postilMessage);
+			flowStatus.setCandealaipformnode(candealaipformnode);
 			flowStatusMapper.insertFlowStatusHis(flowStatus);
 			flowStatusMapper.updateFlowStatus(flowStatus);
 		}
@@ -246,12 +256,12 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 		}
 		/** 流程变量为空，初始化*/
 		if( variables == null ) {
-			variables = new HashMap<String,Object>();
+			variables = new HashMap<String,Object>(16);
 		}
 		
-		Map<String,String> resultMap = new HashMap<String,String>();
+		Map<String,String> resultMap = new HashMap<String,String>(16);
 		
-		String taskIdsC[] = taskIds.split(",");
+		String[] taskIdsC = taskIds.split(",");
 		for (String taskId : taskIdsC) {
 			/**记录流程状态*/
 			ProcessInstance processInstance = findProcessInstanceByTaskId(taskId);
@@ -277,6 +287,7 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 			flowStatus.setOpid(userId);
 			flowStatus.setPostilMessage(postilMessage);
 			flowStatus.setOptime(new Date());
+			flowStatus.setCandealaipformnode("null");
 			flowStatusMapper.insertFlowStatusHis(flowStatus);
 			flowStatusMapper.updateFlowStatus(flowStatus);
 		}
@@ -316,11 +327,11 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 		}
 		/** 流程变量为空，初始化 */
 		if( variables == null ) {
-			variables = new HashMap<String,Object>();
+			variables = new HashMap<String,Object>(16);
 		}
 		
 		/**多任务循环处理*/
-		String taskIdsC[] = taskIds.split(",");
+		String[] taskIdsC = taskIds.split(",");
 		for (String taskId : taskIdsC) {
 			
 			/**更新状态*/
@@ -356,7 +367,7 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 	 ********************************************************************************************************************************************/
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED,isolation = Isolation.DEFAULT,timeout=60000,rollbackFor=Exception.class)
-	public JsonResult<?> claimTask(String taskIds, String userId) throws Exception{
+	public synchronized JsonResult<?> claimTask(String taskIds, String userId) throws Exception{
 		
 		logger.info("==============================任务接收操作==========================");
 		if(StringUtils.isAnyEmpty(taskIds,userId)) {
@@ -368,7 +379,7 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 		}
 		
 		List<String> resultKey = new ArrayList<String>();
-		String taskIdsC[] = taskIds.split(",");
+		String[] taskIdsC = taskIds.split(",");
 		for (String taskId : taskIdsC) {
 			// 任务接收
 			taskService.claim(taskId, userId);
@@ -377,11 +388,13 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 			String processInstacneId = processInstance.getId();
 			
 			/**更新状态*/
+			String candealaipformnode = getCustomPropertyByName(CustomStencilConstants.PROPERTY_CANDEAL_AIPFORMNODE,processInstance,null);
 			FlowStatus flowStatus = flowStatusMapper.selectFlowStatusByProcessInstanceId(processInstacneId);
 			flowStatus.setFlowStatus(Constant.flow_claim);
 			flowStatus.setOpid(userId);
 			flowStatus.setOptime(new Date());
 			flowStatus.setPostilMessage("接收成功");
+			flowStatus.setCandealaipformnode(candealaipformnode);
 			flowStatusMapper.insertFlowStatusHis(flowStatus);
 			flowStatusMapper.updateFlowStatus(flowStatus);
 			
@@ -412,7 +425,7 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 			return JsonResult.failMessage(errorInfo);
 		}
 		List<String> resultKey = new ArrayList<String>();
-		String taskIdsC[] = taskIds.split(",");
+		String[] taskIdsC = taskIds.split(",");
 		for (String taskId : taskIdsC) {
 			taskService.unclaim(taskId);
 			ProcessInstance processInstance = findProcessInstanceByTaskId(taskId);
@@ -565,7 +578,7 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 	private void commitProcess(String taskId, Map<String, Object> variables,
 			String activityId) throws Exception {
 		if (variables == null) {
-			variables = new HashMap<String, Object>();
+			variables = new HashMap<String, Object>(16);
 		}
 		// 跳转节点为空，默认提交操作
 		if (StringUtils.isEmpty(activityId)) {
@@ -674,14 +687,12 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 			List<ActivityImpl> tempList) throws Exception {
 		
 		ActivityImpl currActivityFirst = findActivitiImpl(taskId,null);
-		String type_1 = (String) currActivity.getProperty("type");
-		if(!(currActivity.getId()).equals(currActivityFirst.getId()) && "userTask".equals(type_1)) {
+		String type1 = (String) currActivity.getProperty("type");
+		if(!(currActivity.getId()).equals(currActivityFirst.getId()) && type1.equals(userTask)) {
 			return rtnList;
 		}
-		
 		// 查询流程实例，生成流程树结构
 		ProcessInstance processInstance = findProcessInstanceByTaskId(taskId);
- 
 		// 当前节点的流入来源
 		List<PvmTransition> incomingTransitions = currActivity.getIncomingTransitions();
 		// 条件分支节点集合，userTask节点遍历完毕，迭代遍历此集合，查询条件分支对应的userTask节点
@@ -697,38 +708,36 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 			 * 并行节点配置要求：
 			 * 必须成对出现，且要求分别配置节点ID为:XXX_start(开始)，XXX_end(结束)
 			 */
-			if ("parallelGateway".equals(type)) {// 并行路线
+			// 并行路线
+			if ("parallelGateway".equals(type)) {
 				String gatewayId = activityImpl.getId();
 				String gatewayType = gatewayId.substring(gatewayId.lastIndexOf("_") + 1);
-				if ("START".equals(gatewayType.toUpperCase())) {// 并行起点，停止递归
+				// 并行起点，停止递归
+				if ("START".equals(gatewayType.toUpperCase())) {
 					return rtnList;
 				} else {// 并行终点，临时存储此节点，本次循环结束，迭代集合，查询对应的userTask节点
 					parallelGateways.add(activityImpl);
 				}
-			} else if ("startEvent".equals(type)) {// 开始节点，停止递归
+			} else if ("startEvent".equals(type)) {
+				// 开始节点，停止递归
 				return rtnList;
-			} else if ("userTask".equals(type)) {// 用户任务
+			} else if ("userTask".equals(type)) {
+				// 用户任务
 				tempList.add(activityImpl);
-			} else if ("exclusiveGateway".equals(type)) {// 分支路线，临时存储此节点，本次循环结束，迭代集合，查询对应的userTask节点
+			} else if ("exclusiveGateway".equals(type)) {
+				// 分支路线，临时存储此节点，本次循环结束，迭代集合，查询对应的userTask节点
 				currActivity = transitionImpl.getSource();
 				exclusiveGateways.add(currActivity);
 			}
 		}
- 
-		/**
-		 * 迭代条件分支集合，查询对应的userTask节点
-		 */
+		/**迭代条件分支集合，查询对应的userTask节点*/
 		for (ActivityImpl activityImpl : exclusiveGateways) {
 			iteratorBackActivity(taskId, activityImpl, rtnList, tempList);
 		}
- 
-		/**
-		 * 迭代并行集合，查询对应的userTask节点
-		 */
+		/**迭代并行集合，查询对应的userTask节点*/
 		for (ActivityImpl activityImpl : parallelGateways) {
 			iteratorBackActivity(taskId, activityImpl, rtnList, tempList);
 		}
- 
 		/**
 		 * 根据同级userTask集合，过滤最近发生的节点
 		 */
@@ -736,12 +745,13 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 		if (currActivity != null) {
 			// 查询当前节点的流向是否为并行终点，并获取并行起点ID
 			String id = findParallelGatewayId(currActivity);
-			if (StringUtils.isEmpty(id)) {// 并行起点ID为空，此节点流向不是并行终点，符合退回条件，存储此节点
+			if (StringUtils.isEmpty(id)) {
+				// 并行起点ID为空，此节点流向不是并行终点，符合退回条件，存储此节点
 				rtnList.add(currActivity);
-			} else {// 根据并行起点ID查询当前节点，然后迭代查询其对应的userTask任务节点
+			} else {
+				// 根据并行起点ID查询当前节点，然后迭代查询其对应的userTask任务节点
 				currActivity = findActivitiImpl(taskId, id);
 			}
- 
 			// 清空本次迭代临时集合
 			tempList.clear();
 			// 执行下次迭代
@@ -759,9 +769,10 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 	private List<ActivityImpl> reverList(List<ActivityImpl> list) {
 		List<ActivityImpl> rtnList = new ArrayList<ActivityImpl>();
 		// 由于迭代出现重复数据，排除重复
-		for (int i = list.size(); i > 0; i--) {
-			if (!rtnList.contains(list.get(i - 1)))
+		for (int i = list.size(); i > 0; i--){
+			if (!rtnList.contains(list.get(i - 1))){
 				rtnList.add(list.get(i - 1));
+			}
 		}
 		return rtnList;
 	}
@@ -780,7 +791,8 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 			TransitionImpl transitionImpl = (TransitionImpl) pvmTransition;
 			activityImpl = transitionImpl.getDestination();
 			String type = (String) activityImpl.getProperty("type");
-			if ("parallelGateway".equals(type)) {// 并行路线
+			if ("parallelGateway".equals(type)) {
+				// 并行路线
 				String gatewayId = activityImpl.getId();
 				String gatewayType = gatewayId.substring(gatewayId
 						.lastIndexOf("_") + 1);
@@ -805,28 +817,28 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 	private ActivityImpl filterNewestActivity(ProcessInstance processInstance,
 			List<ActivityImpl> tempList) {
 		while (tempList.size() > 0) {
-			ActivityImpl activity_1 = tempList.get(0);
-			HistoricActivityInstance activityInstance_1 = findHistoricUserTask(
-					processInstance, activity_1.getId());
-			if (activityInstance_1 == null) {
-				tempList.remove(activity_1);
+			ActivityImpl activity1 = tempList.get(0);
+			HistoricActivityInstance activityInstance1 = findHistoricUserTask(
+					processInstance, activity1.getId());
+			if (activityInstance1 == null) {
+				tempList.remove(activity1);
 				continue;
 			}
  
 			if (tempList.size() > 1) {
-				ActivityImpl activity_2 = tempList.get(1);
-				HistoricActivityInstance activityInstance_2 = findHistoricUserTask(
-						processInstance, activity_2.getId());
-				if (activityInstance_2 == null) {
-					tempList.remove(activity_2);
+				ActivityImpl activity2 = tempList.get(1);
+				HistoricActivityInstance activityInstance2 = findHistoricUserTask(
+						processInstance, activity2.getId());
+				if (activityInstance2 == null) {
+					tempList.remove(activity2);
 					continue;
 				}
  
-				if (activityInstance_1.getEndTime().before(
-						activityInstance_2.getEndTime())) {
-					tempList.remove(activity_1);
+				if (activityInstance1.getEndTime().before(
+						activityInstance2.getEndTime())) {
+					tempList.remove(activity1);
 				} else {
-					tempList.remove(activity_2);
+					tempList.remove(activity2);
 				}
 			} else {
 				break;
@@ -980,7 +992,7 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 		}
  
 		// 根据流程定义，获取该流程实例的结束节点
-		if (activityId.toUpperCase().equals("END")) {
+		if (activityId.toUpperCase().equals(END)) {
 			for (ActivityImpl activityImpl : processDefinition.getActivities()) {
 				List<PvmTransition> pvmTransitionList = activityImpl
 						.getOutgoingTransitions();
@@ -1035,7 +1047,7 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 		Task lastTask = tasks.get(0);
 		String lastTaskId = lastTask.getId();
 		taskService.claim(lastTaskId, lastAssignee);
-		Map<String,String> result = new HashMap<String,String>();
+		Map<String,String> result = new HashMap<String,String>(16);
 		result.put("laskTaskId", lastTaskId);
 		result.put("lastAssignee", lastAssignee);
 		return result;
@@ -1083,32 +1095,6 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 		}
 		
 		return elementValue;
-	}
-	
-	/**
-	 * 获取当前节点信息
-	 * @param processInstance
-	 * @param activityId
-	 * @param type				：name-节点名	detail-节点描述	id-编号
-	 * @return
-	 */
-	private String getNodeInfo(ProcessInstance processInstance,String activityId,String type) {
-		String processDefinitionId = processInstance.getProcessDefinitionId();
-		if(activityId == null) {
-			activityId = processInstance.getActivityId();
-		}
-		BpmnModel bmplModel = repositoryService.getBpmnModel(processDefinitionId);
-		FlowElement flowElement = bmplModel.getProcesses().get(0).getFlowElement(activityId);
-		
-		if("name".equals(type)) {
-			return flowElement.getName();
-		}else if("detail".equals(type)) {
-			return flowElement.getDocumentation();
-		}else if("id".equals(type)){
-			return flowElement.getId();
-		}else {
-			return "";
-		}
 	}
 	
 	/**

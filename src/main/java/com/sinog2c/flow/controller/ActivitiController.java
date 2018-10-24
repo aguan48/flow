@@ -46,7 +46,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sinog2c.flow.act.ActivitiUtil;
 import com.sinog2c.flow.act.CustomBpmnJsonConverter;
 import com.sinog2c.flow.act.CustomUserTaskJsonConverter;
-import com.sinog2c.flow.domain.HistoricActivityInstanceResponse;
 import com.sinog2c.flow.domain.HistoricProcessInstanceResponse;
 import com.sinog2c.flow.domain.HistoricTaskInstanceResponse;
 import com.sinog2c.flow.domain.HistoricVariableInstanceResponse;
@@ -100,10 +99,8 @@ public class ActivitiController extends BaseController{
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 		}
-		
 	}
 	
-
 	/**
 	 * 查询
 	 * @return
@@ -157,7 +154,6 @@ public class ActivitiController extends BaseController{
 			result.setSuccess(true);
 			result.setMessage("删除成功!");
 		} catch (Exception e) {
-			// TODO: handle exception
 			logger.error(e.getMessage());
 		}
 		return result;
@@ -238,7 +234,7 @@ public class ActivitiController extends BaseController{
 				ObjectNode modelNode = (ObjectNode) new ObjectMapper().readTree(bytes);
 				byte[] bpmnBytes = null;
 				
-				// TODO:UserTask自定义扩展属性
+				// TODO:UserTask自定义扩展属性，自定义解析
 				CustomBpmnJsonConverter.getConvertersToBpmnMap().put("UserTask", CustomUserTaskJsonConverter.class);
 				CustomBpmnJsonConverter.getConvertersToJsonMap().put(UserTask.class, CustomUserTaskJsonConverter.class);
 				BpmnJsonConverter jsonConverter = new BpmnJsonConverter();
@@ -261,8 +257,6 @@ public class ActivitiController extends BaseController{
 		}
 		return result;
 	}
-	
-	
 	
 	/**
 	 * 导出model的xml文件
@@ -331,7 +325,6 @@ public class ActivitiController extends BaseController{
 			} else {
 				result.setMessage("模型数据为空，请先设计流程并成功保存，再进行导出！");
 			}
-			
 		} catch (Exception e){
 			logger.error(e.getMessage());
 			PrintWriter out = null;
@@ -427,7 +420,6 @@ public class ActivitiController extends BaseController{
 			result.setSuccess(true);
 			result.setMessage("导入部署成功");
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			logger.error(e.getMessage());
 		}
@@ -473,11 +465,13 @@ public class ActivitiController extends BaseController{
 		}
 	}
 	
+	/********************************************流程实例历史、流程活动历史、流程任务历史、流程变量历史************************************************/
 	
-	
-	/**流程实例历史、流程活动历史、流程任务历史、流程变量历史*/
-	
-	//流程实例历史页面
+	/**
+	 * 流程实例历史页面
+	 * @param request
+	 * @return
+	 */
 	@RequestMapping(value="/toHistoryProcessInstancePage")
 	private ModelAndView toHistoryProcessInstancePage(HttpServletRequest request) {
 		return new ModelAndView("historyProcessInstance");
@@ -505,7 +499,11 @@ public class ActivitiController extends BaseController{
 		return json;
 	}
 	
-	//流程活动历史页面
+	/**
+	 * 流程活动历史页面
+	 * @param request
+	 * @return
+	 */
 	@RequestMapping(value="/toHistoryActivityInstancePage")
 	private ModelAndView toHistoryActivityInstancePage(HttpServletRequest request) {
 		return new ModelAndView("historyActivityInstance");
@@ -532,11 +530,16 @@ public class ActivitiController extends BaseController{
 		return json;
 	}
 	
-	//流程任务历史页面
+	/**
+	 * 流程任务历史页面
+	 * @param request
+	 * @return
+	 */
 	@RequestMapping(value="/toHistoryTaskInstancePage")
 	private ModelAndView toHistoryTaskInstancePage(HttpServletRequest request) {
 		return new ModelAndView("historyTaskInstance");
 	}
+	
 	/**
 	 * 流程任务历史
 	 */
@@ -559,11 +562,16 @@ public class ActivitiController extends BaseController{
 		return json;
 	}
 	
-	//流程任务历史页面
+	/**
+	 * 流程任务历史页面
+	 * @param request
+	 * @return
+	 */
 	@RequestMapping(value="/toHistoryVariableInstancePage")
 	private ModelAndView toHistoryVariableInstancePage(HttpServletRequest request) {
 		return new ModelAndView("historyVariableInstance");
 	}
+	
 	/**
 	 * 流程变量历史
 	 */

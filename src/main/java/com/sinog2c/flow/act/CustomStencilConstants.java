@@ -14,5 +14,11 @@ import org.activiti.editor.constants.StencilConstants;
 *
  */
 public interface CustomStencilConstants extends StencilConstants{
-	final String PROPERTY_CANDEAL_AIPFORMNODE = "candealaipformnode";//可以操作的Aip表单节点
+	
+	/**
+	 * 可以操作的Aip表单节点
+	 */
+	public final String PROPERTY_CANDEAL_AIPFORMNODE = "candealaipformnode";
+	
+	
 }

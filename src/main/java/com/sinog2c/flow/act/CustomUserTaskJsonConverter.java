@@ -8,12 +8,10 @@ import org.activiti.bpmn.model.FlowElement;
 import org.activiti.bpmn.model.UserTask;
 import org.activiti.editor.language.json.converter.BaseBpmnJsonConverter;
 import org.activiti.editor.language.json.converter.UserTaskJsonConverter;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.sinog2c.flow.FlowApplication;
 
 /**
  * 重写UserTaskJsonConverter方法，完成对自定义属性的扩展

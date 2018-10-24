@@ -17,12 +17,18 @@ import org.activiti.editor.language.json.converter.BpmnJsonConverter;
  */
 public class CustomBpmnJsonConverter extends BpmnJsonConverter{
 	
-	//通过继承开放convertersToJsonMap的访问
+	/**
+	 * 通过继承开放convertersToJsonMap的访问
+	 * @return
+	 */
     public static Map<Class<? extends BaseElement>, Class<? extends BaseBpmnJsonConverter>> getConvertersToJsonMap(){
         return convertersToJsonMap;
     }
 
-    //通过继承开放convertersToBpmnMap的访问
+    /**
+     * 通过继承开放convertersToBpmnMap的访问
+     * @return
+     */
     public static Map<String, Class<? extends BaseBpmnJsonConverter>> getConvertersToBpmnMap(){
         return convertersToBpmnMap;
     }

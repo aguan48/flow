@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.sinog2c.flow.act.ActivitiUtil;
-import com.sinog2c.flow.domain.HistoricActivityInstanceResponse;
 import com.sinog2c.flow.domain.HistoricProcessInstanceResponse;
 import com.sinog2c.flow.domain.HistoricTaskInstanceResponse;
 import com.sinog2c.flow.domain.HistoricVariableInstanceResponse;
@@ -111,6 +110,7 @@ public class CommonFlowQueryListServiceImpl implements CommonFlowQueryListServic
 		}
 		list = query.listPage(Integer.parseInt(param.get("offset").toString()), 
 				Integer.parseInt(param.get("limit").toString()));
+		logger.info("");
 		return list;
 	}
 	

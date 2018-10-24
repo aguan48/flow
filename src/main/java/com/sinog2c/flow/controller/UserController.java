@@ -16,11 +16,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.sinog2c.flow.FlowApplication;
 import com.sinog2c.flow.domain.User;
 import com.sinog2c.flow.service.UserService;
-import com.sinog2c.flow.util.Result;
 import com.sinog2c.flow.util.PasswordUtil;
+import com.sinog2c.flow.util.Result;
 /**
  * 用户控制层
  * @author 许杰

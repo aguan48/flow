@@ -114,5 +114,14 @@ public interface FlowProcessQueryService {
 	 * @param processDefinitionKey	流程定义key
 	 * @return
 	 */
-	JsonResult<List<Map<String,Object>>> selectPersonalBacklogTaskCount(String userId,String tenantId);
+	JsonResult<Integer> selectPersonalBacklogTaskCount(String userId,String tenantId);
+	
+	/**
+	 * 获取组任务数量
+	 * 
+	 * @param tenantId				系统
+	 * @param processDefinitionKey	流程定义key
+	 * @return
+	 */
+	JsonResult<Integer> selectGroupBacklogTaskCount(String groupIds,String tenantId);
 }

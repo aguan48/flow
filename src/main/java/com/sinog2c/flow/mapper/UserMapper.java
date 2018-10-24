@@ -15,5 +15,4 @@ public interface UserMapper {
 	public void updateUser(User user);
 	
 	List<Map> selectGroupIdsByUserIdAndTenantId(Map<String, Object> map);
-	
 }
