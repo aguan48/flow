@@ -7,7 +7,9 @@ public class FlowStatus {
 	public FlowStatus() {
 		super();
 	}
-
+	
+	private String businessKey;
+	private String flowBusinessKey;
 	private String processInstanceId;
 	private String flowStatus;
 	private String postilMessage;
@@ -17,8 +19,20 @@ public class FlowStatus {
 	private String opid;
 	private Date optime;
 	
+	public String getBusinessKey() {
+		return businessKey;
+	}
+	public void setBusinessKey(String businessKey) {
+		this.businessKey = businessKey;
+	}
 	public String getProcessInstanceId() {
 		return processInstanceId;
+	}
+	public String getFlowBusinessKey() {
+		return flowBusinessKey;
+	}
+	public void setFlowBusinessKey(String flowBusinessKey) {
+		this.flowBusinessKey = flowBusinessKey;
 	}
 	public void setProcessInstanceId(String processInstanceId) {
 		this.processInstanceId = processInstanceId;
@@ -69,7 +83,7 @@ public class FlowStatus {
 	
 	
 	
-	public FlowStatus(String processInstanceId, String flowStatus, String postilMessage, String candealaipformnode,
+	public FlowStatus(String businessKey,String flowBusinessKey,String processInstanceId, String flowStatus, String postilMessage, String candealaipformnode,
 			String applyid, String applyname, String opid, Date optime) {
 		super();
 		this.processInstanceId = processInstanceId;
@@ -80,6 +94,8 @@ public class FlowStatus {
 		this.applyname = applyname;
 		this.opid = opid;
 		this.optime = optime;
+		this.flowBusinessKey = flowBusinessKey;
+		this.businessKey = businessKey;
 	}
 	public FlowStatus(String processInstanceId, String flowStatus, String postilMessage, String opid, Date optime) {
 		super();

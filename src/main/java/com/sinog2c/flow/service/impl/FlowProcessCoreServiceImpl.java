@@ -18,6 +18,7 @@ import org.activiti.engine.RepositoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.history.HistoricActivityInstance;
+import org.activiti.engine.history.HistoricProcessInstance;
 import org.activiti.engine.impl.RepositoryServiceImpl;
 import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.activiti.engine.impl.persistence.entity.TaskEntity;
@@ -133,18 +134,19 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 		
 		for (Map<String, String> map : businessList) {
 			String businessKey = map.get("businessKey");
+			String flowBusinessKey = IDGenerator.getNextId();
 			String applyid = map.get("applyid");
 			String applyname = map.get("applyname");
 			/** 设置发起人*/
 			identityService.setAuthenticatedUserId(userId);
 			/**根据流程定义ID启动流程*/
-			ProcessInstance processInstance = runtimeService.startProcessInstanceByKeyAndTenantId(processDefinitionKey, businessKey, variables, tenantId);
+			ProcessInstance processInstance = runtimeService.startProcessInstanceByKeyAndTenantId(processDefinitionKey, flowBusinessKey, variables, tenantId);
 			String processInstanceId = processInstance.getId();
 			
 			/**记录状态*/
 			// 当前节点可编辑节点
 			String candealaipformnode = getCustomPropertyByName(CustomStencilConstants.PROPERTY_CANDEAL_AIPFORMNODE,processInstance,null);
-			FlowStatus flowStatus = new FlowStatus(processInstanceId,Constant.flow_start,"启动流程",candealaipformnode,applyid,applyname,userId,new Date());
+			FlowStatus flowStatus = new FlowStatus(businessKey,flowBusinessKey,processInstanceId,Constant.flow_start,"启动流程",candealaipformnode,applyid,applyname,userId,new Date());
 			flowStatusMapper.insertFlowStatus(flowStatus);
 			flowStatusMapper.insertFlowStatusHis(flowStatus);
 		}
@@ -341,7 +343,20 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 			
 			/**更新状态*/
 			FlowStatus flowStatus = flowStatusMapper.selectFlowStatusByProcessInstanceId(processInstacneId);
-			flowStatus.setFlowStatus(Constant.flow_refuse);
+			
+			HistoricProcessInstance hpi= historyService // 历史任务Service  
+			        .createHistoricProcessInstanceQuery() // 创建历史流程实例查询  
+			        .processInstanceId(processInstacneId) // 指定流程实例ID  
+			        .singleResult();
+			String startUserId = hpi.getStartUserId();
+			
+			/** 拒绝用户和启动用户为同一个人，流程自动标记撤回状态 */
+			if(userId.equals(startUserId)) {
+				flowStatus.setFlowStatus(Constant.flow_recall);
+			}else {
+				flowStatus.setFlowStatus(Constant.flow_refuse);
+			}
+			
 			flowStatus.setOpid(userId);
 			flowStatus.setPostilMessage(postilMessage);
 			flowStatus.setOptime(new Date());

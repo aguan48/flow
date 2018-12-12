@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<#assign path = request.contextPath />
-    <title>流程管理平台</title>
+    <title>流程管理系统</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="${path}/home/css/bootstrap.min.css" />
@@ -15,7 +15,7 @@
 <body>
     <!--Header-part-->
     <div id="header">
-      <h1><a href="dashboard.html">流程管理平台</a></h1>
+      <h1><a href="dashboard.html">流程管理系统</a></h1>
     </div>
     <!--close-Header-part--> 
     <!--top-Header-menu-->
@@ -76,15 +76,6 @@
                 </ul>
                 <ul onclick="javascript:insertHomeText('历史流程变量');">
                     <li><a class="menu_a" link="${path}/activiti/toHistoryVariableInstancePage"><i class="icon icon-caret-right"></i>历史流程变量</a></li>
-                </ul>
-            </li>
-            <li class="submenu"> 
-                <a href="#">
-                    <i class="icon icon-stop"></i> 
-                    <span>流程文档</span> 
-                </a>
-                <ul onclick="javascript:insertHomeText('流程文档');">
-                    <li><a class="menu_a" link="${path}/MDDocument/mdEditor"><i class="icon icon-caret-right"></i>流程文档</a></li>
                 </ul>
             </li>
         </ul>

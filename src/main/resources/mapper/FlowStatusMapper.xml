@@ -5,18 +5,18 @@
 	<insert id="insertFlowStatus" parameterType="com.sinog2c.flow.domain.FlowStatus">
 	
 		insert into t_flow_status
-			(processInstanceId,flowStatus,postilMessage,candealaipformnode,applyid,applyname,opid,optime)
+			(businessKey,flowBusinessKey,processInstanceId,flowStatus,postilMessage,candealaipformnode,applyid,applyname,opid,optime)
 		values
-			(#{processInstanceId},#{flowStatus},#{postilMessage},#{candealaipformnode},#{applyid},#{applyname},#{opid},#{optime})
+			(#{businessKey},#{flowBusinessKey},#{processInstanceId},#{flowStatus},#{postilMessage},#{candealaipformnode},#{applyid},#{applyname},#{opid},#{optime})
 			
 	</insert>
 	
 	<insert id="insertFlowStatusHis" parameterType="com.sinog2c.flow.domain.FlowStatus">
 	
 		insert into t_flow_status_his
-			(processInstanceId,flowStatus,postilMessage,candealaipformnode,applyid,applyname,opid,optime)
+			(businessKey,flowBusinessKey,processInstanceId,flowStatus,postilMessage,candealaipformnode,applyid,applyname,opid,optime)
 		values
-			(#{processInstanceId},#{flowStatus},#{postilMessage},#{candealaipformnode},#{applyid},#{applyname},#{opid},#{optime})
+			(#{businessKey},#{flowBusinessKey},#{processInstanceId},#{flowStatus},#{postilMessage},#{candealaipformnode},#{applyid},#{applyname},#{opid},#{optime})
 			
 	</insert>
 	
