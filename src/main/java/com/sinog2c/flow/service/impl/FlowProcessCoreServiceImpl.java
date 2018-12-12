@@ -351,6 +351,7 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 			String startUserId = hpi.getStartUserId();
 			
 			/** 拒绝用户和启动用户为同一个人，流程自动标记撤回状态 */
+			String resultMsg = "";
 			if(userId.equals(startUserId)) {
 				flowStatus.setFlowStatus(Constant.flow_recall);
 			}else {
@@ -370,7 +371,7 @@ public class FlowProcessCoreServiceImpl implements FlowProcessCoreService {
 		}
 		
 		logger.info("==============================[流程拒绝（结束）操作]方法名：refuseFlowProcess[拒绝（结束）成功]==========================");
-		return JsonResult.successMessage("拒绝（结束）成功");
+		return JsonResult.successMessage("操作成功");
 	}
 	
 	/*********************************************************************************************************************************************
