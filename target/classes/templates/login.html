@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+	<#assign path = request.contextPath />
+	<meta charset="UTF-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"> 
+	<meta name="viewport" content="width=device-width, initial-scale=1"> 
+	<title>流程管理系统</title>
+	<link rel="stylesheet" type="text/css" href="${path}/login/css/normalize.css" />
+	<link rel="stylesheet" type="text/css" href="${path}/login/css/demo.css" />
+	<!--必要样式-->
+	<link rel="stylesheet" type="text/css" href="${path}/login/css/component.css" />
+	<!--[if IE]>
+	<script src="js/html5.js"></script>
+	<![endif]-->
+	<link rel="icon" href="${path}/img/favicon.ico" mce_href="favicon.ico" type="image/x-icon">
+</head>
+<body>
+		<div class="container demo-1">
+			<div class="content">
+				<div id="large-header" class="large-header">
+					<div class="left-logo">
+						<img alt="" style="width: 200px;" src="${path}/login/img/gklogo.png">
+					</div>
+					<canvas id="demo-canvas"></canvas>
+					<div class="logo_box">
+						<h3>流程管理系统</h3>
+						<form id="login" action="${path}/user/login" name="f" method="post" onsubmit="return submitValidate()">
+							<div style="height: 30px; text-align: center; color: red; line-height: 30px; font-size: 1.1em;">
+								<span>${(message)?default('')}</span>
+							</div>
+							<div class="input_outer">
+								<span class="u_user"></span>
+								<input id="userid" name="userid" value="${(userid)?default('')}" class="text" style="color: #FFFFFF !important" type="text" placeholder="请输入账户"></br>
+								<span id="userid_error" style="color: red;"></span>
+							</div>
+							<div class="input_outer">
+								<span class="us_uer"></span>
+								<input id="password" name="password" value="${(password)?default('')}" class="text" style="color: #FFFFFF !important;" type="password" placeholder="请输入密码"></br>
+								<span id="password_error" style="color: red;"></span>
+							</div>
+							<div class="mb2"><a class="act-but submit" href="javascript:void(0);" onclick="$('#login').submit()" style="color: #FFFFFF">登录</a></div>
+						</form>
+					</div>
+					<div class="buttom-text">
+						<table>
+							<tr>
+								<td>
+									国科政信科技（北京）股份有限公司
+								</td>
+							</tr>
+							<tr>
+								<td>
+									官方网站：<a href="http://www.sinog2c.com" style="color:white;">www.sinog2c.com</a>	服务热线：010-82911260
+								</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div><!-- /container -->
+		<script src="${path}/js/jquery.min.js"></script>
+		<script src="${path}/login/js/TweenLite.min.js"></script>
+		<script src="${path}/login/js/EasePack.min.js"></script>
+		<script src="${path}/login/js/rAF.js"></script>
+		<script src="${path}/login/js/demo-1.js"></script>
+		<script src="${path}/js/login.js"></script>
+	</body>
+</html>

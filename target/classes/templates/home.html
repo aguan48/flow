@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<#assign path = request.contextPath />
+    <title>流程管理系统</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="${path}/home/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="${path}/home/css/bootstrap-responsive.min.css" />
+    <link rel="stylesheet" href="${path}/home/css/matrix-style.css" />
+    <link rel="stylesheet" href="${path}/home/css/matrix-media.css" />
+    <link href="${path}/home/font-awesome/css/font-awesome.css" rel="stylesheet" />
+    <link rel="stylesheet" href="${path}/css/layer-animate.css" />
+</head>
+<body>
+    <!--Header-part-->
+    <div id="header">
+      <h1><a href="dashboard.html">流程管理系统</a></h1>
+    </div>
+    <!--close-Header-part--> 
+    <!--top-Header-menu-->
+    <div id="user-nav" class="navbar navbar-inverse">
+        <ul class="nav">
+            <li  class="dropdown" id="profile-messages" >
+                <a title="" href="#" data-toggle="dropdown" data-target="#profile-messages" class="dropdown-toggle">
+                    <i class="icon icon-user"></i>&nbsp;
+                    <span class="text">欢迎你，<span id="user_name">${(user.name)?default('')}</span></span>&nbsp;
+                    <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu">
+                    <li><a href="javascript:void(0);" onclick="updateUser();"><i class="icon-user"></i> 个人资料</a></li>
+                    <!-- <li class="divider"></li>
+                    <li><a href="#"><i class="icon-check"></i> 我的任务</a></li> -->
+                    <li class="divider"></li>
+                    <li><a href="javascript:void(0);" onclick="logout();"><i class="icon-key"></i> 退出系统</a></li>
+                </ul>
+            </li>
+            <li class=""><a href="javascript:void(0);" onclick="logout();"><i class="icon icon-share-alt"></i> <span class="text">&nbsp;退出系统</span></a></li>
+        </ul>
+    </div>
+    <!--close-top-Header-menu-->
+
+
+    <!--sidebar-menu-->
+    <div id="sidebar" style="OVERFLOW-Y: auto; OVERFLOW-X:hidden;">
+        <ul>
+            <li class="submenu active">
+                <a class="menu_a" link="${path}/user/index"><i class="icon icon-home"></i> <span>控制面板</span></a> 
+            </li>
+            <li class="submenu"> 
+                <a href="#">
+                    <i class="icon icon-sitemap"></i> 
+                    <span>流程管理</span> 
+                    <!-- <span class="label label-important">1</span> -->
+                </a>
+                <ul onclick="javascript:insertHomeText('模型管理');">
+                    <li><a class="menu_a" link="${path}/activiti/modelList"><i class="icon icon-caret-right"></i>模型管理</a></li>
+                </ul>
+                <ul onclick="javascript:insertHomeText('流程定义');">
+                    <li><a class="menu_a" link="${path}/activiti/deployList"><i class="icon icon-caret-right"></i>流程定义</a></li>
+                </ul>
+            </li>
+           <li class="submenu">
+				<a href="#">
+                    <i class="icon icon-random"></i> 
+                    <span>流程历史记录</span> 
+                </a>
+				<ul onclick="javascript:insertHomeText('历史流程实例');">
+                    <li><a class="menu_a" link="${path}/activiti/toHistoryProcessInstancePage"><i class="icon icon-caret-right"></i>历史流程实例</a></li>
+                </ul>
+                <ul onclick="javascript:insertHomeText('历史流程活动');">
+                    <li><a class="menu_a" link="${path}/activiti/toHistoryActivityInstancePage"><i class="icon icon-caret-right"></i>历史流程活动</a></li>
+                </ul>
+                <ul onclick="javascript:insertHomeText('历史流程任务');">
+                    <li><a class="menu_a" link="${path}/activiti/toHistoryTaskInstancePage"><i class="icon icon-caret-right"></i>历史流程任务</a></li>
+                </ul>
+                <ul onclick="javascript:insertHomeText('历史流程变量');">
+                    <li><a class="menu_a" link="${path}/activiti/toHistoryVariableInstancePage"><i class="icon icon-caret-right"></i>历史流程变量</a></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+    <!--sidebar-menu-->
+
+    <!--main-container-part-->
+    <div id="content">
+        <!--breadcrumbs-->
+        <div id="content-header">
+          <div id="breadcrumb"> 
+          		<a href="${path}/user/home" title="回到桌面" class="tip-bottom"><i class="icon-home"></i>我的桌面</a>
+          		<span id="home_span" style="margin-left:4px;"></span>
+          </div>
+        </div>
+        <!--End-breadcrumbs-->
+        <iframe src="${path}/user/index" id="iframe-main" frameborder='0' style="width:100%;"></iframe>
+    </div>
+    <!--end-main-container-part-->
+
+    <script src="${path}/home/js/excanvas.min.js"></script> 
+    <script src="${path}/home/js/jquery.min.js"></script>
+    <script src="${path}/js/common.js"></script>
+    <script src="${path}/home/js/jquery.ui.custom.js"></script> 
+    <script src="${path}/home/js/bootstrap.min.js"></script> 
+    <script src="${path}/home/js/nicescroll/jquery.nicescroll.min.js"></script> 
+    <script src="${path}/home/js/matrix.js"></script> 
+    <script src="${path}/js/tanchu_method.js"></script>
+    <script type="text/javascript">
+	
+    //填充home
+    function insertHomeText(text){
+    	$("#home_span").html(text);
+    }
+    
+    //初始化相关元素高度
+    function init(){
+        $("body").height($(window).height()-80);
+        $("#iframe-main").height($(window).height()-90);
+        $("#sidebar").height($(window).height()-50);
+    }
+
+    $(function(){
+        init();
+        $(window).resize(function(){
+            init();
+        });
+    });
+
+    // This function is called from the pop-up menus to transfer to
+    // a different page. Ignore if the value returned is a null string:
+    function goPage (newURL) {
+        // if url is empty, skip the menu dividers and reset the menu selection to default
+        if (newURL != "") {
+            // if url is "-", it is this page -- reset the menu:
+            if (newURL == "-" ) {
+                resetMenu();            
+            } 
+            // else, send page to designated URL            
+            else {  
+                document.location.href = newURL;
+            }
+        }
+    }
+
+    // resets the menu selection upon entry to this page:
+    function resetMenu() {
+        document.gomenu.selector.selectedIndex = 2;
+    }
+    
+    function logout(){
+    	confirm("确定要退出登录吗？", function(msg){
+    		if(msg){
+    			window.location.href = "${path}/user/logout";
+    		}
+    	});
+    }
+    
+    function updateUser(){
+    	$.ajax({
+			url: "${path}/user/getUser",
+			type: "post",
+			dataType: "json",
+			success: function (data) {
+				if(data.success){
+					showEditPage(data.obj);
+				}else{
+					alert(data.message);
+				}
+			},
+			error: function (jqXHR, textStatus, errorThrown) {
+				alert("操作失败!");
+			}
+		});
+    }
+    
+    function showEditPage(user){
+    	var content = "<table class='tb_layer'><tr>"+
+				"<td align='right'>用&ensp;户&ensp;名：</td><td><input style='width:250px;' readonly='true' value='"+user.userid+"' id='add_userid' /></td>"+
+				"</tr><tr>"+
+				"<td align='right'>姓&emsp;&emsp;名：</td><td><input style='width:250px;' value='"+user.name+"' id='add_name' /></td>"+
+				"</tr><tr>"+
+				"<td align='right'>性&emsp;&emsp;别：</td><td> <div>";
+		if(user.gender == '1'){
+			content +="<label style=\"margin: 5px 30px; display: inline;\"><input type=\"radio\" name=\"gender\" value='1' checked/>男</label>"+
+				"<label style=\"margin: 5px 30px; display: inline;\"><input type=\"radio\" name=\"gender\" value='2'/>女</label></div></td>"+
+				"</tr><tr>";
+		}else if(user.gender == '2'){
+			content += "<label style=\"margin: 5px 30px; display: inline;\"><input type=\"radio\" name=\"gender\" value='1'/>男</label>"+
+				"<label style=\"margin: 5px 30px; display: inline;\"><input type=\"radio\" name=\"gender\" value='2' checked/>女</label></div></td>"+
+				"</tr><tr>";
+		}else{
+			content += "<label style=\"margin: 5px 30px; display: inline;\"><input type=\"radio\" name=\"gender\" value='1'/>男</label>"+
+				"<label style=\"margin: 5px 30px; display: inline;\"><input type=\"radio\" name=\"gender\" value='2'/>女</label></div></td>"+
+				"</tr><tr>";
+		}
+		content += "<td align='right'>原始密码：</td><td><input style='width:250px;' id='add_password'/></td>"+
+				"</tr><tr>"+
+				"<td align='right'>新&ensp;密&ensp;码：</td><td><input style='width:250px;' id='add_newpassword'/></td>"+
+				"</tr><tr>"+
+				"<td align='right'>确认密码：</td><td><input style='width:250px;' id='add_repassword'/></td>"+
+				"</tr></table>"+
+				"<div><span style=\"color: red; font-size: 1.2em;\">提示：密码为空时，不修改密码！</span></div>";
+		var obj={
+			type: "showSweetAlert",
+			close: "true",
+			title: "个人信息",
+			area:["370px","400px"],
+			content: content,
+			btn:["取消","保存"],
+			callBack1:function(){
+				method.msg_close();	            	
+			},
+			callBack2:function(){
+				editUser();
+			}
+		};
+		method.msg_layer(obj);
+    }
+    
+    function editUser(){
+    	//验证密码
+    	if(!validatePassword()) return;
+    	$.ajax({
+			url: "${path}/user/editUser",
+			data: {
+				userid: $("#add_userid").val(),
+				name: $("#add_name").val(),
+				gender: $('input:radio:checked').val(),
+				password: $("#add_password").val(),
+				newPassword: $("#add_newpassword").val()
+			},
+			type: "post",
+			dataType: "json",
+			success: function (data) {
+				alert(data.message);
+				if(data.success){
+					var name = $("#add_name").val();
+					if(name){
+						$("#user_name").html(name);
+					}
+					method.msg_close();
+				}
+			},
+			error: function (jqXHR, textStatus, errorThrown) {
+				alert("操作失败!");
+			}
+		});
+    }
+    
+   	//验证密码
+    function validatePassword(){
+   		var flag = true;
+    	var password = $("#add_password").val();
+    	var newpassword = $("#add_newpassword").val();
+    	var repassword = $("#add_repassword").val();
+    	// 输入新密码
+    	if(newpassword){
+    		if(!password){
+    			// 必须输入原密码
+    			alert("请输入原密码！");
+    			$("#add_password").focus();
+    			flag = false;
+    		}else if(!repassword || newpassword != repassword){
+    			// 必须输入原密码
+    			alert("两次密码必须一致！");
+    			$("#add_repassword").focus();
+    			flag = false;
+    		}
+    	} else if(password){
+    		// 必须输入原密码
+    		alert("请输入新密码！");
+    		$("#add_newpassword").focus();
+    		flag = false;
+    	}
+    	return flag;
+    }
+    </script>
+</body>
+</html>

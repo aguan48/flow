@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinog2c.flow.mapper.UserMapper">
+	<resultMap id="BaseResultMap" type="com.sinog2c.flow.domain.User">
+		<id column="id" jdbcType="VARCHAR" property="id" />
+		<result column="userid" jdbcType="VARCHAR" property="userid" />
+		<result column="username" jdbcType="VARCHAR" property="userName" />
+		<result column="password" jdbcType="VARCHAR" property="password" />
+		<result column="name" jdbcType="VARCHAR" property="name" />
+		<result column="gender" jdbcType="VARCHAR" property="gender" />
+		<result column="crtime" jdbcType="TIMESTAMP" property="crTime" />
+		<result column="crid" jdbcType="VARCHAR" property="crId" />
+		<result column="optime" jdbcType="TIMESTAMP" property="opTime" />
+		<result column="opid" jdbcType="VARCHAR" property="opId" />
+		<result column="isdelete" jdbcType="VARCHAR" property="isdelete" />
+	</resultMap>
+	
+	<sql id="Base_Column_List">
+		id, userid, password, name, gender, crTime, crId, optime, opid, isdelete	
+	</sql>
+	
+	<select id="selectUserById" parameterType="Map" resultMap="BaseResultMap">
+		SELECT  
+			<include refid="Base_Column_List" />
+		FROM TBSYS_USERINFO
+		WHERE 1=1
+		<if test="id != null and id != ''">
+			AND id = #{id, jdbcType=VARCHAR}
+		</if>
+		<if test="userid != null and userid != ''">
+			AND userid = #{userid, jdbcType=VARCHAR}
+		</if>
+		<if test="password != null and password != ''">
+			AND password = #{password, jdbcType=VARCHAR}
+		</if>
+		<if test="name != null and name != ''">
+			AND name = #{name, jdbcType=VARCHAR}
+		</if>
+		<if test="isdelete != null and isdelete != ''">
+			AND isdelete = #{isdelete, jdbcType=VARCHAR}
+		</if>
+	</select>
+	
+	<update id="updateUser" parameterType="com.sinog2c.flow.domain.User">
+		UPDATE TBSYS_USERINFO 
+		<trim prefix="set" suffixOverrides=",">
+			<if test="password != null and password != ''">
+				password = #{password, jdbcType=VARCHAR},
+			</if>
+			<if test="name != null and name != ''">
+				name = #{name, jdbcType=VARCHAR},
+			</if>
+			<if test="gender != null and gender != ''">
+				gender = #{gender, jdbcType=VARCHAR},
+			</if>
+			<if test="opTime != null">
+				optime = #{opTime, jdbcType=TIMESTAMP},
+			</if>
+			<if test="opId != null and opId != ''">
+				opid = #{opId, jdbcType=VARCHAR},
+			</if>
+			<if test="isdelete != null and isdelete != ''">
+				isdelete = #{isdelete, jdbcType=VARCHAR},
+			</if>
+		</trim>
+		WHERE userid = #{userid, jdbcType=VARCHAR}
+	</update>
+	
+	<select id="selectGroupIdsByUserIdAndTenantId" parameterType="Map" resultType="Map">
+			select 
+				tr.id groupId
+			from 
+				tbsys_users_roles tur , 
+				tbsys_roleinfo tr 
+			where 
+				tur.userid = #{userId} 
+				and tur.roleid=tr.id 
+				and tr.assosystem = #{tenantId}
+		</select>
+	
+</mapper>

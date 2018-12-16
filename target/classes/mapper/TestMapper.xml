@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinog2c.flow.mapper.TestMapper">
+	
+	<insert id="insertOne" parameterType="Map">
+		insert into testone (id,name) values(#{id},#{name});
+	</insert>
+	
+	<insert id="insertTwo" parameterType="Map">
+		insert into testtwo (id,name) values(#{id},#{name});
+	</insert>
+	
+	
+</mapper>

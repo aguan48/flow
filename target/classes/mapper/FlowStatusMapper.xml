@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinog2c.flow.mapper.FlowStatusMapper">
+	
+	<insert id="insertFlowStatus" parameterType="com.sinog2c.flow.domain.FlowStatus">
+	
+		insert into t_flow_status
+			(businessKey,flowBusinessKey,processInstanceId,flowStatus,postilMessage,candealaipformnode,applyid,applyname,opid,optime)
+		values
+			(#{businessKey},#{flowBusinessKey},#{processInstanceId},#{flowStatus},#{postilMessage},#{candealaipformnode},#{applyid},#{applyname},#{opid},#{optime})
+			
+	</insert>
+	
+	<insert id="insertFlowStatusHis" parameterType="com.sinog2c.flow.domain.FlowStatus">
+	
+		insert into t_flow_status_his
+			(businessKey,flowBusinessKey,processInstanceId,flowStatus,postilMessage,candealaipformnode,applyid,applyname,opid,optime)
+		values
+			(#{businessKey},#{flowBusinessKey},#{processInstanceId},#{flowStatus},#{postilMessage},#{candealaipformnode},#{applyid},#{applyname},#{opid},#{optime})
+			
+	</insert>
+	
+	<update id="updateFlowStatus" parameterType="com.sinog2c.flow.domain.FlowStatus">
+	
+		update t_flow_status
+		<set>
+			<if test="flowStatus != null">
+				flowStatus = #{flowStatus},
+			</if>
+			<if test="postilMessage != null">
+				postilMessage = #{postilMessage},
+			</if>
+			<if test="opid != null">
+				opid = #{opid},
+			</if>
+			<if test="candealaipformnode != null">
+				candealaipformnode = #{candealaipformnode},
+			</if>
+		</set>
+		where processInstanceId = #{processInstanceId}
+		
+	</update>
+	
+	<select id="selectFlowStatusByProcessInstanceId" parameterType="String" resultType="com.sinog2c.flow.domain.FlowStatus">
+		select * from t_flow_status
+		where processInstanceId = #{processInstanceId} 
+	</select>
+	
+	<select id="selectPersonalBacklogTaskCount" parameterType="Map" resultType="int">
+		SELECT 
+			count(*) 
+		FROM 
+			`v_flow_personaltask` t 
+		where 
+			assignee = #{userId} 
+			and tenantid = #{tenantId}
+	</select>
+	
+	<select id="selectGroupBacklogTaskCount" parameterType="Map" resultType="int">
+		SELECT 
+			count(*) 
+		FROM 
+			`v_flow_grouptask` t 
+		where 
+			tenantid = #{tenantId} 
+			and groupid in (${groupIds})
+	</select>
+	
+</mapper>
