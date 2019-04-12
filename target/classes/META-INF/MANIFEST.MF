@@ -1,9 +1,9 @@
 Manifest-Version: 1.0
 Implementation-Title: gk-flow
 Implementation-Version: 0.0.1-SNAPSHOT
-Built-By: ￨ﾵﾵ￦ﾴﾋ
+Built-By: hu
 Implementation-Vendor-Id: com.sinog2c.flow
-Build-Jdk: 1.8.0_31
+Build-Jdk: 1.8.0_181
 Implementation-URL: http://projects.spring.io/spring-boot/sinog2c-pare
  nt/gk-flow/
 Created-By: Maven Integration for Eclipse
